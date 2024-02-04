@@ -17,6 +17,7 @@ import dev.paihu.narou_viewer.R
 import dev.paihu.narou_viewer.data.Datasource
 import dev.paihu.narou_viewer.model.Page
 import dev.paihu.narou_viewer.ui.theme.NarouviewerTheme
+import java.time.LocalDateTime
 
 @Composable
 fun PageScreen(pages: List<Page>, click: (id: Int) -> Unit) {
@@ -62,6 +63,6 @@ fun PageCard(page: Page, click: () -> Unit, modifier: Modifier = Modifier) {
 @Preview
 private fun PageCardPreview() {
     NarouviewerTheme {
-        PageCard(Page(1, 1, 1, "Page1", "content"), {})
+        PageCard(Page(1, 1, 1, "Page1", "content", LocalDateTime.now()), {})
     }
 }

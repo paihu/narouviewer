@@ -16,13 +16,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.paging.compose.collectAsLazyPagingItems
 import dev.paihu.narou_viewer.data.Datasource
+import dev.paihu.narou_viewer.data.NovelRepository
 import dev.paihu.narou_viewer.model.Novel
 import dev.paihu.narou_viewer.ui.ContentScreen
 import dev.paihu.narou_viewer.ui.NovelScreen
@@ -67,7 +68,7 @@ fun AppBar(
 
 @Composable
 fun NovelApp(
-    viewModel: NovelViewModel = viewModel(),
+    viewModel: NovelViewModel = NovelViewModel(NovelRepository()),
     navController: NavHostController = rememberNavController()
 ) {
     // Get current back stack entry
@@ -83,7 +84,7 @@ fun NovelApp(
                 currentScreen = currentScreen,
                 canNavigateBack = navController.previousBackStackEntry != null,
                 navigateUp = { navController.navigateUp() },
-                currentNovel = viewModel.currentNovel(),
+                currentNovel = viewModel.currentNovel,
             )
         }
     ) { innerPadding ->
@@ -97,7 +98,7 @@ fun NovelApp(
                 .padding(innerPadding)
         ) {
             composable(route = AppScreen.NovelList.name) {
-                NovelScreen(uiState.novels) { id ->
+                NovelScreen(viewModel.novels.collectAsLazyPagingItems()) { id ->
                     viewModel.selectNovel(id)
                     navController.navigate(AppScreen.PageList.name)
                 }

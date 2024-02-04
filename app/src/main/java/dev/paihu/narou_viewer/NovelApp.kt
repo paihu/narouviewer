@@ -2,7 +2,16 @@ package dev.paihu.narou_viewer
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -26,6 +35,34 @@ enum class AppScreen {
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AppBar(
+    currentScreen: AppScreen,
+    canNavigateBack: Boolean,
+    navigateUp: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    if(currentScreen!= AppScreen.ContentView){
+    TopAppBar(
+        title = { Text(currentScreen.name) },
+        colors = TopAppBarDefaults.mediumTopAppBarColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        ),
+        modifier = modifier,
+        navigationIcon = {
+            if (canNavigateBack) {
+                IconButton(onClick = navigateUp) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "modoru"
+                    )
+                }
+            }
+        }
+    )}
+}
+
 @Composable
 fun NovelApp(
     viewModel: NovelViewModel = viewModel(),
@@ -38,7 +75,15 @@ fun NovelApp(
         backStackEntry?.destination?.route ?: AppScreen.NovelList.name
     )
 
-    Scaffold { innerPadding ->
+    Scaffold(
+        topBar = {
+            AppBar(
+                currentScreen = currentScreen,
+                canNavigateBack = navController.previousBackStackEntry != null,
+                navigateUp = { navController.navigateUp() }
+            )
+        }
+    ) { innerPadding ->
         val uiState by viewModel.uiState.collectAsState()
         NavHost(
             navController = navController,

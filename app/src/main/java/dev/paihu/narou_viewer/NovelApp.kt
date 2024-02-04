@@ -23,6 +23,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import dev.paihu.narou_viewer.data.Datasource
+import dev.paihu.narou_viewer.model.Novel
 import dev.paihu.narou_viewer.ui.ContentScreen
 import dev.paihu.narou_viewer.ui.NovelScreen
 import dev.paihu.narou_viewer.ui.NovelViewModel
@@ -41,11 +42,12 @@ fun AppBar(
     currentScreen: AppScreen,
     canNavigateBack: Boolean,
     navigateUp: () -> Unit,
+    currentNovel: Novel?,
     modifier: Modifier = Modifier
 ) {
     if(currentScreen!= AppScreen.ContentView){
     TopAppBar(
-        title = { Text(currentScreen.name) },
+        title = { Text(if (currentScreen == AppScreen.PageList && currentNovel != null) currentNovel.title else currentScreen.name) },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         ),
@@ -74,18 +76,19 @@ fun NovelApp(
     val currentScreen = AppScreen.valueOf(
         backStackEntry?.destination?.route ?: AppScreen.NovelList.name
     )
-
+    val uiState by viewModel.uiState.collectAsState()
     Scaffold(
         topBar = {
             AppBar(
                 currentScreen = currentScreen,
                 canNavigateBack = navController.previousBackStackEntry != null,
-                navigateUp = { navController.navigateUp() }
+                navigateUp = { navController.navigateUp() },
+                currentNovel = viewModel.currentNovel(),
             )
         }
     ) { innerPadding ->
-        val uiState by viewModel.uiState.collectAsState()
-        NavHost(
+
+    NavHost(
             navController = navController,
             startDestination = AppScreen.NovelList.name,
             modifier = Modifier

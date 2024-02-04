@@ -20,6 +20,9 @@ class NovelViewModel : ViewModel() {
         _uiState.update { currentState -> currentState.copy(novels = Datasource.loadNovels()) }
     }
 
+    fun currentNovel(): Novel? {
+        return this.novels.find { novel -> novel.id == this._uiState.value.selectedNovel }
+    }
     fun selectNovel(id: Int) {
         _uiState.update { currentState -> currentState.copy(selectedNovel = id) }
     }

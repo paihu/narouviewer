@@ -22,13 +22,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.paging.compose.collectAsLazyPagingItems
-import dev.paihu.narou_viewer.data.Datasource
 import dev.paihu.narou_viewer.data.NovelRepository
+import dev.paihu.narou_viewer.data.PageRepository
 import dev.paihu.narou_viewer.model.Novel
 import dev.paihu.narou_viewer.ui.ContentScreen
+import dev.paihu.narou_viewer.ui.ContentViewModel
 import dev.paihu.narou_viewer.ui.NovelScreen
-import dev.paihu.narou_viewer.ui.NovelViewModel
 import dev.paihu.narou_viewer.ui.PageScreen
+import dev.paihu.narou_viewer.ui.PageViewModel
 
 enum class AppScreen {
     NovelList,
@@ -104,13 +105,18 @@ fun NovelApp(
                 }
             }
             composable(route = AppScreen.PageList.name) {
-                PageScreen(Datasource.loadPages(uiState.selectedNovel)) { id ->
+                val pageViewModel = PageViewModel(uiState.selectedNovel, PageRepository())
+                PageScreen(pageViewModel) { id ->
                     viewModel.selectPage(id)
                     navController.navigate(AppScreen.ContentView.name)
                 }
             }
             composable(route = AppScreen.ContentView.name) {
-                ContentScreen(page = Datasource.loadPage(uiState.selectedPage))
+                val contentViewModel = ContentViewModel(
+                    uiState.selectedNovel, uiState.selectedPage,
+                    PageRepository()
+                )
+                ContentScreen(contentViewModel)
             }
         }
     }

@@ -38,10 +38,8 @@ fun Novels(
 ) {
     LazyColumn {
         items(novels.itemCount) { index ->
-            val novel = novels[index]
-            if (novel != null) {
+            val novel = novels[index]!!
                 NovelCard(novel, click = { click(novel.id) })
-            }
         }
     }
 }

@@ -87,7 +87,7 @@ private val DarkColors = darkColorScheme(
 @Composable
 fun NarouviewerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean=false,
+    dynamicColor: Boolean = false,
     content: @Composable() () -> Unit
 ) {
     val colorScheme = when {

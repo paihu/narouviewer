@@ -1,5 +1,6 @@
 package dev.paihu.narou_viewer.data
 
+import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import dev.paihu.narou_viewer.model.Page
@@ -7,11 +8,11 @@ import java.time.LocalDateTime
 import kotlin.math.max
 
 
-class PagePagingSource(private val novelId: Int) : PagingSource<Int, Page>() {
+class PagePagingSource(private val novelId: Int) :
+    PagingSource<Int, Page>() {
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Page> {
         val start = params.key ?: STARTING_KEY
         val range = start.until(start + params.loadSize)
-
         return LoadResult.Page(
             data = range.map { number ->
                 Page(

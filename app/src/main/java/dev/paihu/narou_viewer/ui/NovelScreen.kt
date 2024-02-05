@@ -29,7 +29,6 @@ fun NovelScreen(novels: LazyPagingItems<Novel>, click: (id: Int) -> Unit) {
     )
 }
 
-
 @Composable
 fun Novels(
     novels: LazyPagingItems<Novel>,
@@ -39,7 +38,7 @@ fun Novels(
     LazyColumn {
         items(novels.itemCount) { index ->
             val novel = novels[index]!!
-                NovelCard(novel, click = { click(novel.id) })
+            NovelCard(novel, click = { click(novel.id) })
         }
     }
 }

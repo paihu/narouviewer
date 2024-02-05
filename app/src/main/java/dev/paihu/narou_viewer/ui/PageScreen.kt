@@ -8,26 +8,36 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import dev.paihu.narou_viewer.ITEMS_PER_PAGE
 import dev.paihu.narou_viewer.R
 import dev.paihu.narou_viewer.data.Datasource
+import dev.paihu.narou_viewer.data.PageRepository
 import dev.paihu.narou_viewer.model.Page
 import dev.paihu.narou_viewer.ui.theme.NarouviewerTheme
 import kotlinx.coroutines.flow.flowOf
 import java.time.LocalDateTime
 
 @Composable
-fun PageScreen(viewModel: PageViewModel, click: (id: Int) -> Unit) {
-    val pages = viewModel.pages.collectAsLazyPagingItems()
+fun PageScreen(novelId: Int, click: (id: Int) -> Unit) {
+    val pageFlow = remember {
+        Pager(
+            config = PagingConfig(pageSize = ITEMS_PER_PAGE, enablePlaceholders = false),
+            pagingSourceFactory = { PageRepository().pagePagingSource(novelId) }
+        ).flow
+    }
+    val pages = pageFlow.collectAsLazyPagingItems()
     Pages(pages, click)
 }
-
 
 @Composable
 fun Pages(pages: LazyPagingItems<Page>, click: (id: Int) -> Unit, modifier: Modifier = Modifier) {

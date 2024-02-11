@@ -14,6 +14,7 @@ class Downloader(
 ) : CoroutineWorker(ctx, params) {
 
     override suspend fun doWork(): Result {
+        Log.i("downloader", "startDowwnload")
         val mode = inputData.getString("mode")
         if (mode == "novel") {
             inputData.getString("novelId")?.let { novelId ->

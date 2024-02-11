@@ -39,7 +39,6 @@ interface NarouSearchApi {
     suspend fun searchNovels(
         @Query("word") word: String? = null,
         @Query("st") st: Int? = null,
-        @Query("gzip") gzip: Int = 5,
         @Query("out") out: String = "json",
         @Query("title") title: Int = 1,
         @Query("of") of: String = "t-n-w-nu"
@@ -47,11 +46,8 @@ interface NarouSearchApi {
 
     @GET("/novelapi/api")
     suspend fun fetchNovelInfo(
-        @Query("word") word: String? = null,
-        @Query("st") st: Int? = null,
-        @Query("gzip") gzip: Int = 5,
+        @Query("ncode") ncode: String? = null,
         @Query("out") out: String = "json",
-        @Query("title") title: Int = 1,
         @Query("of") of: String = "t-n-w-nu"
     ): Array<NarouSearchResult>
 }
@@ -75,14 +71,14 @@ object NarouService {
 
     val fetchService by lazy {
         Retrofit.Builder()
-            .baseUrl("https://ncode.syosetsu.com")
+            .baseUrl("https://ncode.syosetu.com")
             .addConverterFactory(ScalarsConverterFactory.create())
             .build()
             .create(NarouApi::class.java)
     }
     val searchService by lazy {
         Retrofit.Builder()
-            .baseUrl("https://api.syosetsu.com")
+            .baseUrl("https://api.syosetu.com")
             .addConverterFactory(MoshiConverterFactory.create(Moshi.Builder().build()))
             .build()
             .create(NarouSearchApi::class.java)
@@ -122,7 +118,7 @@ object NarouService {
 
     private fun elementToPageInfo(it: Element, novelId: String): PageInfo {
         val title = it.select(".subtitle").text()
-        val pageId = it.select(".subtitle").attr("href").split("/")[1]
+        val pageId = it.select(".subtitle > a").attr("href").split("/")[2]
         val createdAt = it.select(".long_update")[0].ownText().replace("\"", "").trim()
         val info = PageInfo(
             title = title,
@@ -153,7 +149,7 @@ object NarouService {
         )
     }
 
-    private fun String.toZoneDateTime(pattern: String = "yyyy/MM/dd HH:mm:ss"): ZonedDateTime? {
+    private fun String.toZoneDateTime(pattern: String = "yyyy/MM/dd HH:mm"): ZonedDateTime? {
         val formatter = try {
             DateTimeFormatter.ofPattern(pattern)
         } catch (e: IllegalArgumentException) {

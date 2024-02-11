@@ -1,0 +1,170 @@
+package dev.paihu.narou_viewer.network
+
+import dev.paihu.narou_viewer.model.Novel
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
+import retrofit2.Retrofit
+import retrofit2.converter.scalars.ScalarsConverterFactory
+import retrofit2.http.GET
+import retrofit2.http.Path
+import retrofit2.http.Query
+import java.text.ParseException
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+
+
+data class NarouSearchResult(
+    val allcount: Int?,
+    val title: String?,
+    val writer: String?,
+    val ncode: String?,
+    val novelupdated_at: String?
+)
+
+data class PageInfo(
+    val novelId: String,
+    val pageId: String,
+    val pageNum: Int,
+    val title: String,
+    val createdAt: ZonedDateTime?,
+    val updatedAt: ZonedDateTime?,
+)
+
+interface NarouSearchApi {
+    @GET("/novelapi/api")
+    suspend fun searchNovels(
+        @Query("word") word: String? = null,
+        @Query("st") st: Int? = null,
+        @Query("gzip") gzip: Int = 5,
+        @Query("out") out: String = "json",
+        @Query("title") title: Int = 1,
+        @Query("of") of: String = "t-n-w-nu"
+    ): Array<NarouSearchResult>
+
+    @GET("/novelapi/api")
+    suspend fun fetchNovelInfo(
+        @Query("word") word: String? = null,
+        @Query("st") st: Int? = null,
+        @Query("gzip") gzip: Int = 5,
+        @Query("out") out: String = "json",
+        @Query("title") title: Int = 1,
+        @Query("of") of: String = "t-n-w-nu"
+    ): Array<NarouSearchResult>
+}
+
+interface NarouApi {
+
+    @GET("/{novelId}/")
+    suspend fun fetchNovelPagesInfo(
+        @Path("novelId") novelId: String,
+        @Query("p") p: Int? = null
+    ): String
+
+    @GET("/{novelId}/{pageId}")
+    suspend fun fetchPageData(
+        @Path("novelId") novelId: String,
+        @Path("pageId") pageId: String,
+    ): String
+}
+
+object NarouService {
+
+    val fetchService by lazy {
+        Retrofit.Builder()
+            .baseUrl("https://api.syosetsu.com")
+            .addConverterFactory(ScalarsConverterFactory.create())
+            .build()
+            .create(NarouApi::class.java)
+    }
+    val searchService by lazy {
+        Retrofit.Builder()
+            .baseUrl("https://api.syosetsu.com")
+            .addConverterFactory(ScalarsConverterFactory.create())
+            .build()
+            .create(NarouSearchApi::class.java)
+    }
+
+    suspend fun search(word: String): List<Novel> {
+        val ret = searchService.searchNovels(word)
+        return ret.mapNotNull { resultToNovel(it) }
+    }
+
+    suspend fun getNovelInfo(novelId: String): Novel {
+        return searchService.fetchNovelInfo(novelId).mapNotNull { resultToNovel(it) }[0]
+    }
+
+    suspend fun getPagesInfo(novelId: String): List<PageInfo> {
+        val ret = Jsoup.parse(fetchService.fetchNovelPagesInfo(novelId))
+        val info =
+            ret.select("dl.novel_sublist2").map { elementToPageInfo(it, novelId) }.toMutableList()
+        return try {
+            for (i in 2..ret.select("a.novelview_pager-last")[0].attr("href")
+                .split("=")[1].toInt()) {
+                val res = Jsoup.parse(fetchService.fetchNovelPagesInfo(novelId))
+                val addInfo = res.select("dl.novel_sublist2").map { elementToPageInfo(it, novelId) }
+                info.addAll(addInfo)
+            }
+            info.toList()
+        } catch (e: IndexOutOfBoundsException) {
+            info.toList()
+        }
+    }
+
+    suspend fun getPage(pageInfo: PageInfo): String {
+        val ret = Jsoup.parse(fetchService.fetchPageData(pageInfo.novelId, pageInfo.novelId))
+        val body = ret.select("#novel_honbun > p").map { it.text() }
+        return body.joinToString("\n")
+    }
+
+    private fun elementToPageInfo(it: Element, novelId: String): PageInfo {
+        val title = it.select(".subtitle").text()
+        val pageId = it.select(".subtitle").attr("href").split("/")[1]
+        val createdAt = it.select(".long_update")[0].ownText().replace("\"", "").trim()
+        val info = PageInfo(
+            title = title,
+            pageId = pageId,
+            pageNum = pageId.toInt(),
+            novelId = novelId,
+            updatedAt = createdAt.toZoneDateTime(),
+            createdAt = createdAt.toZoneDateTime(),
+        )
+        return try {
+            val updatedAt =
+                it.select(".long_update > span")[0].attr("title").replace("改稿", "").trim()
+                    .toZoneDateTime()
+            info.copy(updatedAt = updatedAt)
+        } catch (e: IndexOutOfBoundsException) {
+            info
+        }
+    }
+
+    private fun resultToNovel(result: NarouSearchResult): Novel? {
+        if ((result.allcount ?: 0) > 0) return null
+        return Novel(
+            title = result.title!!,
+            author = result.writer!!,
+            novelId = result.ncode!!,
+            type = "Narou",
+            updatedAt = result.novelupdated_at?.toZoneDateTime("yyyy-MM-dd HH:mm:ss"),
+        )
+    }
+
+    private fun String.toZoneDateTime(pattern: String = "yyyy/MM/dd HH:mm:ss"): ZonedDateTime? {
+        val formatter = try {
+            DateTimeFormatter.ofPattern(pattern)
+        } catch (e: IllegalArgumentException) {
+            null
+        }
+        val date = formatter?.let {
+            try {
+                ZonedDateTime.of(LocalDateTime.parse(this, formatter), ZoneId.of("Asia/Tokyo"))
+            } catch (e: ParseException) {
+                null
+            }
+        }
+        return date
+    }
+}
+

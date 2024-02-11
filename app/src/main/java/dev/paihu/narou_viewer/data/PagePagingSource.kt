@@ -1,10 +1,9 @@
 package dev.paihu.narou_viewer.data
 
-import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import dev.paihu.narou_viewer.model.Page
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import kotlin.math.max
 
 
@@ -20,9 +19,10 @@ class PagePagingSource(private val novelId: Int) :
                     id = number,
                     novelId = novelId,
                     pageNum = number,
+                    pageId = number.toString(),
                     title = "Article $novelId-$number",
                     pageText = "Author $number",
-                    updateAt = LocalDateTime.now(),
+                    updateAt = ZonedDateTime.now(),
                 )
             },
 

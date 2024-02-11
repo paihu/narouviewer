@@ -13,6 +13,9 @@ navigationCompose = "2.8.0-alpha01"
 navigationTesting = "2.8.0-alpha01"
 pagingCommonKtx = "3.2.1"
 pagingCompose = "3.3.0-alpha02"
+jsoup = "1.17.2"
+retrofit = "2.9.0"
+converterScalars = "2.9.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -34,6 +37,9 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 androidx-navigation-testing = { group = "androidx.navigation", name = "navigation-testing", version.ref = "navigationTesting" }
 androidx-paging-common-ktx = { group = "androidx.paging", name = "paging-common-ktx", version.ref = "pagingCommonKtx" }
 androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "pagingCompose" }
+jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+converter-scalars = { group = "com.squareup.retrofit2", name = "converter-scalars", version.ref = "converterScalars" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

@@ -1,9 +1,11 @@
 package dev.paihu.narou_viewer.network
 
+import com.squareup.moshi.Moshi
 import dev.paihu.narou_viewer.model.Novel
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import retrofit2.Retrofit
+import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -73,7 +75,7 @@ object NarouService {
 
     val fetchService by lazy {
         Retrofit.Builder()
-            .baseUrl("https://api.syosetsu.com")
+            .baseUrl("https://ncode.syosetsu.com")
             .addConverterFactory(ScalarsConverterFactory.create())
             .build()
             .create(NarouApi::class.java)
@@ -81,7 +83,7 @@ object NarouService {
     val searchService by lazy {
         Retrofit.Builder()
             .baseUrl("https://api.syosetsu.com")
-            .addConverterFactory(ScalarsConverterFactory.create())
+            .addConverterFactory(MoshiConverterFactory.create(Moshi.Builder().build()))
             .build()
             .create(NarouSearchApi::class.java)
     }

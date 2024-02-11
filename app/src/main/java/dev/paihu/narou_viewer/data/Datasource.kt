@@ -2,22 +2,22 @@ package dev.paihu.narou_viewer.data
 
 import dev.paihu.narou_viewer.model.Novel
 import dev.paihu.narou_viewer.model.Page
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 object Datasource {
     fun loadNovels(): List<Novel> {
         return (1..100).map {
-            Novel(it, "novel$it", "author$it")
+            Novel(it, "novel$it", "author$it", null, "narou")
         }
     }
 
     fun loadPages(novelId: Int): List<Page> {
         return (1..100).map {
-            Page(it, novelId, it, "page$novelId-$it", "pagecontent", LocalDateTime.now())
+            Page(it, novelId, it, "page$novelId-$it", "pagecontent", "nakami", ZonedDateTime.now())
         }
     }
 
     fun loadPage(pageId: Int): Page {
-        return Page(pageId, 1, 1, "hoge", "content", LocalDateTime.now())
+        return Page(pageId, 1, 1, "hoge", "content", "nakami", ZonedDateTime.now())
     }
 }

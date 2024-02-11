@@ -25,7 +25,7 @@ import dev.paihu.narou_viewer.data.PageRepository
 import dev.paihu.narou_viewer.model.Page
 import dev.paihu.narou_viewer.ui.theme.NarouviewerTheme
 import kotlinx.coroutines.flow.flowOf
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 @Composable
 fun PageScreen(novelId: Int, click: (id: Int) -> Unit) {
@@ -80,6 +80,6 @@ fun PageCard(page: Page, click: () -> Unit, modifier: Modifier = Modifier) {
 @Preview
 private fun PageCardPreview() {
     NarouviewerTheme {
-        PageCard(Page(1, 1, 1, "Page1", "content", LocalDateTime.now()), {})
+        PageCard(Page(1, 1, 1, "Page1", "content", "nakami", ZonedDateTime.now()), {})
     }
 }

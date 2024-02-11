@@ -7,6 +7,6 @@ class NovelRepository {
     fun novelPagingSource() = NovelPagingSource()
 
     fun find(id: Int): Novel {
-        return Novel(id, "Title $id", "Author $id")
+        return Novel(id, "Title $id", "Author $id", null, "narou")
     }
 }

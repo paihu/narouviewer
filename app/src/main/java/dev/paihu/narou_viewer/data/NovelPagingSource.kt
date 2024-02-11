@@ -18,7 +18,9 @@ class NovelPagingSource : PagingSource<Int, Novel>() {
                     // Generate consecutive increasing numbers as the article id
                     id = number,
                     title = "Article $number",
-                    author = "Author $number"
+                    author = "Author $number",
+                    novelId = null,
+                    type = "narou"
                 )
             },
 
@@ -34,7 +36,7 @@ class NovelPagingSource : PagingSource<Int, Novel>() {
     override fun getRefreshKey(state: PagingState<Int, Novel>): Int? {
         val anchorPosition = state.anchorPosition ?: return null
         val article = state.closestItemToPosition(anchorPosition) ?: return null
-        return ensureValidKey(key = article.id - (state.config.pageSize / 2))
+        return ensureValidKey(key = article.id!! - (state.config.pageSize / 2))
     }
 
     private fun ensureValidKey(key: Int) = max(STARTING_KEY, key)

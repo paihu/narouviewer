@@ -13,11 +13,11 @@ object Datasource {
 
     fun loadPages(novelId: Int): List<Page> {
         return (1..100).map {
-            Page(it, novelId,  "page$novelId-$it", "pagecontent", "nakami", ZonedDateTime.now())
+            Page(it, novelId, it, "page$novelId-$it", "pagecontent", "nakami", ZonedDateTime.now())
         }
     }
 
     fun loadPage(pageId: Int): Page {
-        return Page(1,  pageId,"pageId", "hoge", "content",  ZonedDateTime.now())
+        return Page(pageId,1,  pageId,"pageId", "hoge", "content",  ZonedDateTime.now())
     }
 }

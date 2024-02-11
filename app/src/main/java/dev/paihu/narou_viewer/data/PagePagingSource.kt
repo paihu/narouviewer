@@ -16,6 +16,7 @@ class PagePagingSource(private val novelId: Int) :
             data = range.map { number ->
                 Page(
                     // Generate consecutive increasing numbers as the article id
+                    id = number,
                     novelId = novelId,
                     pageNum = number,
                     pageId = number.toString(),

@@ -15,6 +15,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -74,8 +75,10 @@ fun AppBar(
 
 
 data class NovelAppState(
+    val selectedScreen: String,
     val selectedNovel: Int,
     val selectedPage: Int,
+    val changeSelectedScreen:(screen:AppScreen)->Unit,
     val changeSelectedNovel: (id: Int) -> Unit,
     val changeSelectedPage: (
         id: Int
@@ -86,12 +89,17 @@ data class NovelAppState(
 fun rememberNovelAppState(): NovelAppState {
     var selectedNovel by rememberSaveable { mutableIntStateOf(0) }
     var selectedPage by rememberSaveable { mutableIntStateOf(0) }
+    var selectedScreen by rememberSaveable {
+        mutableStateOf(AppScreen.NovelList.name)
+    }
     return remember(selectedNovel, selectedPage) {
         NovelAppState(
+            selectedScreen,
             selectedNovel,
             selectedPage,
+            {selectedScreen = it.name  },
             { selectedNovel = it },
-            { selectedPage = it }
+            { selectedPage = it },
         )
     }
 }
@@ -104,13 +112,14 @@ fun NovelApp(
     pageRepository: PageRepository = PageRepository(),
     novelRepository: NovelRepository = NovelRepository(),
 ) {
+    val novelAppState = rememberNovelAppState()
     // Get current back stack entry
     val backStackEntry by navController.currentBackStackEntryAsState()
     // Get the name of the current screen
     val currentScreen = AppScreen.valueOf(
-        backStackEntry?.destination?.route ?: AppScreen.NovelList.name
+        backStackEntry?.destination?.route ?: novelAppState.selectedScreen
     )
-    val novelAppState = rememberNovelAppState()
+
     Scaffold(
         topBar = {
             AppBar(
@@ -130,6 +139,7 @@ fun NovelApp(
                 .padding(innerPadding)
         ) {
             composable(route = AppScreen.NovelList.name) {
+                novelAppState.changeSelectedScreen(AppScreen.NovelList)
                 val novels: Flow<PagingData<Novel>> = remember {
                     Pager(
                         config = PagingConfig(
@@ -145,12 +155,14 @@ fun NovelApp(
                 })
             }
             composable(route = AppScreen.PageList.name) {
+                novelAppState.changeSelectedScreen(AppScreen.PageList)
                 PageScreen(novelAppState.selectedNovel, click = { id ->
                     novelAppState.changeSelectedPage(id)
                     navController.navigate(AppScreen.ContentView.name)
                 })
             }
             composable(route = AppScreen.ContentView.name) {
+                novelAppState.changeSelectedScreen(AppScreen.ContentView)
                 ContentScreen(novelAppState.selectedNovel, novelAppState.selectedPage)
             }
         }

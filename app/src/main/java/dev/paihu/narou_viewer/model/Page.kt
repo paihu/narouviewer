@@ -3,6 +3,7 @@ package dev.paihu.narou_viewer.model
 import java.time.ZonedDateTime
 
 data class Page(
+    val id:Int,
     val novelId: Int,
     val pageNum: Int,
     val pageId: String,

@@ -3,6 +3,7 @@ package dev.paihu.narou_viewer.backgroud
 import android.content.Context
 import android.util.Log
 import androidx.work.CoroutineWorker
+import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
@@ -14,20 +15,17 @@ class Downloader(
 ) : CoroutineWorker(ctx, params) {
 
     override suspend fun doWork(): Result {
-        Log.i("downloader", "startDowwnload")
         val mode = inputData.getString("mode")
         if (mode == "novel") {
             inputData.getString("novelId")?.let { novelId ->
                 val novel = NarouService.getNovelInfo(novelId)
-                Log.i(
-                    "downloader",
-                    "${novel.novelId} ${novel.title} ${novel.author} ${novel.createdAt} ${novel.updatedAt}"
-                )
                 val pages = NarouService.getPagesInfo(novelId)
                 val manager = WorkManager.getInstance(ctx)
                 pages.forEach {
-                    manager.enqueue(
+                    manager.enqueueUniqueWork(
+                        "narou", ExistingWorkPolicy.APPEND_OR_REPLACE,
                         OneTimeWorkRequestBuilder<Downloader>()
+                            .addTag("narou")
                             .setInputData(
                                 workDataOf(
                                     "type" to "narou",
@@ -38,7 +36,6 @@ class Downloader(
                             ).build()
                     )
                 }
-                Log.i("downloader-novel", "enqueue ${pages.size} pages")
                 return Result.success()
             }
             Log.w("downloader-novel", "variable not found")
@@ -47,6 +44,7 @@ class Downloader(
                 inputData.getString("pageId")?.let { pageId ->
                     val page = NarouService.getPage(novelId, pageId)
                     Log.i("downloader-page", page)
+                    Thread.sleep(1000)
                     return Result.success()
                 }
             }

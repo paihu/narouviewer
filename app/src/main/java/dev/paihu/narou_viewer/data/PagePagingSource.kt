@@ -16,7 +16,6 @@ class PagePagingSource(private val novelId: Int) :
             data = range.map { number ->
                 Page(
                     // Generate consecutive increasing numbers as the article id
-                    id = number,
                     novelId = novelId,
                     pageNum = number,
                     pageId = number.toString(),
@@ -38,7 +37,7 @@ class PagePagingSource(private val novelId: Int) :
     override fun getRefreshKey(state: PagingState<Int, Page>): Int? {
         val anchorPosition = state.anchorPosition ?: return null
         val article = state.closestItemToPosition(anchorPosition) ?: return null
-        return ensureValidKey(key = article.id - (state.config.pageSize / 2))
+        return ensureValidKey(key = article.pageNum - (state.config.pageSize / 2))
     }
 
     private fun ensureValidKey(key: Int) = max(STARTING_KEY, key)

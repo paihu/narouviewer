@@ -1,5 +1,6 @@
 package dev.paihu.narou_viewer.ui
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,7 +29,7 @@ import kotlinx.coroutines.flow.flowOf
 import java.time.ZonedDateTime
 
 @Composable
-fun PageScreen(novelId: Int, click: (id: Int) -> Unit) {
+fun PageScreen(novelId: Int, click: (pageId: String) -> Unit) {
     val pageFlow = remember {
         Pager(
             config = PagingConfig(pageSize = ITEMS_PER_PAGE, enablePlaceholders = false),
@@ -40,11 +41,11 @@ fun PageScreen(novelId: Int, click: (id: Int) -> Unit) {
 }
 
 @Composable
-fun Pages(pages: LazyPagingItems<Page>, click: (id: Int) -> Unit, modifier: Modifier = Modifier) {
+fun Pages(pages: LazyPagingItems<Page>, click: (pageId: String) -> Unit, modifier: Modifier = Modifier) {
     LazyColumn {
         items(pages.itemCount) { index ->
             val page = pages[index]!!
-            PageCard(page, { click(page.id) })
+            PageCard(page, { click(page.pageId) })
         }
     }
 }
@@ -55,7 +56,7 @@ fun PagePreview() {
     NarouviewerTheme {
         Pages(
             flowOf(PagingData.from(Datasource.loadPages(1))).collectAsLazyPagingItems(),
-            { id -> })
+            { pageId -> Log.w("pages", pageId)})
     }
 }
 
@@ -80,6 +81,6 @@ fun PageCard(page: Page, click: () -> Unit, modifier: Modifier = Modifier) {
 @Preview
 private fun PageCardPreview() {
     NarouviewerTheme {
-        PageCard(Page(1, 1, 1, "Page1", "content", "nakami", ZonedDateTime.now()), {})
+        PageCard(Page(1, 1, "Page1", "content", "nakami", ZonedDateTime.now()), {})
     }
 }

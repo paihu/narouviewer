@@ -112,8 +112,8 @@ object NarouService {
         }
     }
 
-    suspend fun getPage(pageInfo: PageInfo): String {
-        val ret = Jsoup.parse(fetchService.fetchPageData(pageInfo.novelId, pageInfo.novelId))
+    suspend fun getPage(novelId: String, pageId: String): String {
+        val ret = Jsoup.parse(fetchService.fetchPageData(novelId, novelId))
         val body = ret.select("#novel_honbun > p").map { it.text() }
         return body.joinToString("\n")
     }

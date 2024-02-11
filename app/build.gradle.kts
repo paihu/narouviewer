@@ -66,6 +66,7 @@ dependencies {
     implementation(libs.jsoup)
     implementation(libs.retrofit)
     implementation(libs.converter.scalars)
+    implementation(libs.androidx.work.runtime.ktx)
     testImplementation(libs.androidx.navigation.testing)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

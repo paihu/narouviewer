@@ -38,7 +38,7 @@ fun Novels(
     LazyColumn {
         items(novels.itemCount) { index ->
             val novel = novels[index]!!
-            NovelCard(novel, click = { click(novel.id) })
+            NovelCard(novel, click = { novel.id?.let { click(novel.id) } })
         }
     }
 }
@@ -72,6 +72,13 @@ fun NovelCard(novel: Novel, click: () -> Unit, modifier: Modifier = Modifier) {
 @Preview
 private fun NovelCardPreview() {
     NarouviewerTheme {
-        NovelCard(Novel(1, "Novel1", "Author1"), { Log.w("novel", "") })
+        NovelCard(
+            Novel(
+                id = 1,
+                title = "Novel1",
+                author = "Author1",
+                novelId = null,
+                type = "narou"
+            ), { Log.w("novel", "") })
     }
 }

@@ -10,6 +10,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
@@ -45,15 +47,17 @@ fun PageScreen(
         ).flow
     }
     val pages = pageFlow.collectAsLazyPagingItems()
-    Pages(pages, click = click)
+    val countFlow = db.pageDao().count(novelId,novelType)
+    val count by countFlow.collectAsState(initial = 0)
+    Pages(pages, count,click = click)
 }
 
 @Composable
-fun Pages(pages: LazyPagingItems<Page>, click: (id: Int) -> Unit, modifier: Modifier = Modifier) {
+fun Pages(pages: LazyPagingItems<Page>, count:Int,click: (id: Int) -> Unit, modifier: Modifier = Modifier) {
     LazyColumn {
         items(pages.itemCount) { index ->
             val page = pages[index]!!
-            PageCard(page, pages.itemCount, { click(page.num) })
+            PageCard(page, count, { click(page.num) })
         }
     }
 }
@@ -64,6 +68,7 @@ fun PagePreview() {
     NarouviewerTheme {
         Pages(
             flowOf(PagingData.from(Datasource.loadPages("1", "narou"))).collectAsLazyPagingItems(),
+            100,
             { id -> Log.w("pages", "$id")})
     }
 }

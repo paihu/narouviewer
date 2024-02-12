@@ -12,6 +12,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
@@ -29,6 +32,8 @@ import java.time.ZonedDateTime
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ContentScreen(db: AppDatabase, novelId: String, novelType: String, initialPage: Int) {
+    val countFlow = db.pageDao().count(novelId,novelType)
+    val count by countFlow.collectAsState(initial = 0)
     val pageFlow = remember {
         Pager(
             config = PagingConfig(pageSize = ITEMS_PER_PAGE, enablePlaceholders = false),
@@ -61,11 +66,15 @@ fun ContentScreen(db: AppDatabase, novelId: String, novelType: String, initialPa
                     .fillMaxWidth()
                     .padding(dimensionResource(id = R.dimen.padding_small))
             ) {
-                Text("${page.num}/${pages.itemCount} ${page.title}")
+                Text("(${page.num}/${count}) ${page.title}")
                 Text(page.content ?: "not downloaded")
             }
 
         }
+
+    }
+    LaunchedEffect(Unit) {
+        pageState.scrollToPage(initialPage)
 
     }
 

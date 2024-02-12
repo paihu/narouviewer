@@ -1,5 +1,6 @@
 package dev.paihu.narou_viewer.network
 
+import android.util.Log
 import com.squareup.moshi.Moshi
 import dev.paihu.narou_viewer.model.Novel
 import org.jsoup.Jsoup
@@ -100,7 +101,7 @@ object NarouService {
         return try {
             for (i in 2..ret.select("a.novelview_pager-last")[0].attr("href")
                 .split("=")[1].toInt()) {
-                val res = Jsoup.parse(fetchService.fetchNovelPagesInfo(novelId))
+                val res = Jsoup.parse(fetchService.fetchNovelPagesInfo(novelId,i))
                 val addInfo = res.select("dl.novel_sublist2").map { elementToPageInfo(it, novelId) }
                 info.addAll(addInfo)
             }

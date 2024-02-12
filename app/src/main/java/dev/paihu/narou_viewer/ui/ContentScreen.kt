@@ -12,7 +12,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -46,7 +45,6 @@ fun ContentScreen(db: AppDatabase, novelId: String, novelType: String, initialPa
         ).flow
     }
     val pages = pageFlow.collectAsLazyPagingItems()
-    val pageState = rememberPagerState(pageCount = { pages.itemCount }, initialPage = initialPage)
     val pageState = rememberPagerState(pageCount = { pages.itemCount }, initialPage = maxOf(90-(count-initialPage), 45))
 
     HorizontalPager(

@@ -97,7 +97,10 @@ class Downloader(
         val createdAt = inputData.getLong("createdAt", 0)
         val pageNum = inputData.getInt("pageNum", 0)
         if (pageNum == 0) return Result.failure()
-        val page = db.pageDao().select(novelId, type, pageNum) ?: Page(
+        val page = db.pageDao().select(novelId, type, pageNum)?.copy(
+            title = title,
+            pageId = pageId,
+        ) ?: Page(
             pageId = pageId,
             num = pageNum,
             novelId = novelId,

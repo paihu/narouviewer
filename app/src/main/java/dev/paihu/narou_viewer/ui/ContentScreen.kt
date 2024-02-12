@@ -29,6 +29,8 @@ import kotlinx.coroutines.launch
 import java.time.ZonedDateTime
 import kotlin.math.min
 
+
+val initialLoadSize = ITEMS_PER_PAGE * 3
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ContentScreen(db: AppDatabase, novelId: String, novelType: String, initialPage: Int) {
@@ -37,15 +39,15 @@ fun ContentScreen(db: AppDatabase, novelId: String, novelType: String, initialPa
     if(count==0)return
     val pageFlow = remember {
         Pager(
-            config = PagingConfig(pageSize = ITEMS_PER_PAGE, enablePlaceholders = false),
-            initialKey =  min(count-90,initialPage-45),
+            config = PagingConfig(pageSize = ITEMS_PER_PAGE, enablePlaceholders = false, initialLoadSize = initialLoadSize),
+            initialKey =  min(count-initialLoadSize,initialPage-initialLoadSize/2),
             pagingSourceFactory = {
                 db.pageDao().getPagingSource(novelId, novelType)
             }
         ).flow
     }
     val pages = pageFlow.collectAsLazyPagingItems()
-    val pageState = rememberPagerState(pageCount = { pages.itemCount }, initialPage = maxOf(90-(count-initialPage), 45))
+    val pageState = rememberPagerState(pageCount = { pages.itemCount }, initialPage = maxOf(initialLoadSize-(count-initialPage), initialLoadSize/2))
 
     HorizontalPager(
         state = pageState,

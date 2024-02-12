@@ -30,8 +30,8 @@ data class PageInfo(
     val pageId: String,
     val pageNum: Int,
     val title: String,
-    val createdAt: ZonedDateTime?,
-    val updatedAt: ZonedDateTime?,
+    val createdAt: ZonedDateTime,
+    val updatedAt: ZonedDateTime,
 )
 
 interface NarouSearchApi {
@@ -125,14 +125,14 @@ object NarouService {
             pageId = pageId,
             pageNum = pageId.toInt(),
             novelId = novelId,
-            updatedAt = createdAt.toZoneDateTime(),
-            createdAt = createdAt.toZoneDateTime(),
+            updatedAt = createdAt.toZoneDateTime() ?: ZonedDateTime.now(),
+            createdAt = createdAt.toZoneDateTime() ?: ZonedDateTime.now(),
         )
         return try {
             val updatedAt =
                 it.select(".long_update > span")[0].attr("title").replace("改稿", "").trim()
                     .toZoneDateTime()
-            info.copy(updatedAt = updatedAt)
+            info.copy(updatedAt = updatedAt!!)
         } catch (e: IndexOutOfBoundsException) {
             info
         }

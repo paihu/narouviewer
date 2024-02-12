@@ -7,11 +7,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import androidx.room.Room
+import dev.paihu.narou_viewer.data.AppDatabase
+import dev.paihu.narou_viewer.data.ZonedDateTimeConverter
 import dev.paihu.narou_viewer.ui.theme.NarouviewerTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val db = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java, "app.db"
+        ).addTypeConverter(ZonedDateTimeConverter()).build()
         setContent {
             NarouviewerTheme {
                 // A surface container using the 'background' color from the theme
@@ -19,7 +26,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxWidth(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    NovelApp()
+                    NovelApp(db)
                 }
             }
         }

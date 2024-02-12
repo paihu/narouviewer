@@ -5,32 +5,36 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Query
 import androidx.room.TypeConverter
+import androidx.room.TypeConverters
 import androidx.room.Upsert
-import kotlinx.coroutines.flow.Flow
 
 
-enum class SortTarget(s: String) {
-    createdAt("created_at"),
-    updatedAt("updated_at"),
+enum class SortTarget(val column: String) {
+    CreatedAt("created_at"),
+    UpdatedAt("updated_at"),
 }
 
+
 class Converters {
-
     @TypeConverter
-    fun toSortTarget(value: String) = enumValueOf<SortTarget>(value)
-
-    @TypeConverter
-    fun fromSortTarget(value: SortTarget) = value.name
+    fun fromSortTarget(value: SortTarget) = value.column
 }
 
 @Dao
+@TypeConverters(ZonedDateTimeConverter::class)
 interface NovelDao {
 
     @Query("Select * from novels order by :order asc")
-    fun getAll(order: SortTarget = SortTarget.createdAt): PagingSource<Int, Novel>
+    @TypeConverters(Converters::class)
+    fun getAll(order: SortTarget = SortTarget.CreatedAt): List<Novel>
 
-    @Query("select  * from novels where id = :novelId and type = :type limit 1")
-    fun select(novelId: String, type: String): Flow<Novel>
+    @Query("Select * from novels order by :order asc")
+    @TypeConverters(Converters::class)
+    fun getPagingSource(order: SortTarget = SortTarget.CreatedAt): PagingSource<Int, Novel>
+
+
+    @Query("select  * from novels where novel_id = :novelId and type = :type limit 1")
+    fun select(novelId: String, type: String): Novel?
 
     @Upsert
     suspend fun upsert(vararg novels: Novel)

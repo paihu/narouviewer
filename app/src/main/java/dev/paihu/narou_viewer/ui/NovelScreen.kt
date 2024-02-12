@@ -18,12 +18,13 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import dev.paihu.narou_viewer.R
 import dev.paihu.narou_viewer.data.Datasource
-import dev.paihu.narou_viewer.model.Novel
+import dev.paihu.narou_viewer.data.Novel
 import dev.paihu.narou_viewer.ui.theme.NarouviewerTheme
 import kotlinx.coroutines.flow.flowOf
+import java.time.ZonedDateTime
 
 @Composable
-fun NovelScreen(novels: LazyPagingItems<Novel>, click: (id: Int) -> Unit) {
+fun NovelScreen(novels: LazyPagingItems<Novel>, click: (id: String, type: String) -> Unit) {
     Novels(
         novels, click = click
     )
@@ -32,13 +33,13 @@ fun NovelScreen(novels: LazyPagingItems<Novel>, click: (id: Int) -> Unit) {
 @Composable
 fun Novels(
     novels: LazyPagingItems<Novel>,
-    click: (id: Int) -> Unit,
+    click: (id: String, type: String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn {
         items(novels.itemCount) { index ->
             val novel = novels[index]!!
-            NovelCard(novel, click = { novel.id?.let { click(novel.id) } })
+            NovelCard(novel, click = { click(novel.novelId, novel.type) })
         }
     }
 }
@@ -49,7 +50,7 @@ fun NovelsPreview() {
     NarouviewerTheme {
         Novels(
             flowOf(PagingData.from(Datasource.loadNovels())).collectAsLazyPagingItems(),
-            { id -> Log.w("novels", "$id") })
+            { id, type -> Log.w("novels", "$id $type") })
     }
 }
 
@@ -74,11 +75,12 @@ private fun NovelCardPreview() {
     NarouviewerTheme {
         NovelCard(
             Novel(
-                id = 1,
                 title = "Novel1",
                 author = "Author1",
-                novelId = null,
-                type = "narou"
+                novelId = "hoge",
+                type = "narou",
+                createdAt = ZonedDateTime.now(),
+                updatedAt = ZonedDateTime.now(),
             ), { Log.w("novel", "") })
     }
 }

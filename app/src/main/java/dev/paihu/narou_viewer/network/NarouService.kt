@@ -90,7 +90,7 @@ object NarouService {
     }
 
     suspend fun getNovelInfo(novelId: String): Novel {
-        return searchService.fetchNovelInfo(novelId).mapNotNull { resultToNovel(it) }[0]
+        return searchService.fetchNovelInfo(novelId).mapNotNull { resultToNovel(it) }.first()
     }
 
     suspend fun getPagesInfo(novelId: String): List<PageInfo> {
@@ -143,7 +143,7 @@ object NarouService {
         return Novel(
             title = result.title!!,
             author = result.writer!!,
-            novelId = result.ncode!!,
+            novelId = result.ncode!!.lowercase(),
             type = "Narou",
             updatedAt = result.novelupdated_at?.toZoneDateTime("yyyy-MM-dd HH:mm:ss"),
         )

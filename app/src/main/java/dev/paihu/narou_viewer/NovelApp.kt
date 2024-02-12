@@ -1,9 +1,11 @@
 package dev.paihu.narou_viewer
 
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,17 +32,18 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import dev.paihu.narou_viewer.data.NovelRepository
-import dev.paihu.narou_viewer.data.PageRepository
 import dev.paihu.narou_viewer.model.Novel
 import dev.paihu.narou_viewer.ui.ContentScreen
 import dev.paihu.narou_viewer.ui.NovelScreen
 import dev.paihu.narou_viewer.ui.PageScreen
+import dev.paihu.narou_viewer.ui.SearchScreen
 import kotlinx.coroutines.flow.Flow
 
 enum class AppScreen {
     NovelList,
     PageList,
-    ContentView
+    ContentView,
+    SearchView,
 }
 
 
@@ -50,6 +53,7 @@ fun AppBar(
     currentScreen: AppScreen,
     canNavigateBack: Boolean,
     navigateUp: () -> Unit,
+    search: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (currentScreen != AppScreen.ContentView) {
@@ -60,12 +64,21 @@ fun AppBar(
             ),
             modifier = modifier,
             navigationIcon = {
-                if (canNavigateBack) {
-                    IconButton(onClick = navigateUp) {
+                Row {
+
+                    IconButton(onClick = search) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "modoru"
+                            imageVector = Icons.Filled.Search,
+                            contentDescription = "search"
                         )
+                    }
+                    if (canNavigateBack) {
+                        IconButton(onClick = navigateUp) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "modoru"
+                            )
+                        }
                     }
                 }
             }
@@ -92,7 +105,7 @@ fun rememberNovelAppState(): NovelAppState {
     var selectedScreen by rememberSaveable {
         mutableStateOf(AppScreen.NovelList.name)
     }
-    return remember(selectedNovel, selectedPage) {
+    return remember(selectedScreen, selectedNovel, selectedPage) {
         NovelAppState(
             selectedScreen,
             selectedNovel,
@@ -109,7 +122,6 @@ val ITEMS_PER_PAGE = 30
 @Composable
 fun NovelApp(
     navController: NavHostController = rememberNavController(),
-    pageRepository: PageRepository = PageRepository(),
     novelRepository: NovelRepository = NovelRepository(),
 ) {
     val novelAppState = rememberNovelAppState()
@@ -126,6 +138,7 @@ fun NovelApp(
                 currentScreen = currentScreen,
                 canNavigateBack = navController.previousBackStackEntry != null,
                 navigateUp = { navController.navigateUp() },
+                search = { navController.navigate(AppScreen.SearchView.name) }
             )
         }
     ) { innerPadding ->
@@ -164,6 +177,9 @@ fun NovelApp(
             composable(route = AppScreen.ContentView.name) {
                 novelAppState.changeSelectedScreen(AppScreen.ContentView)
                 ContentScreen(novelAppState.selectedNovel, novelAppState.selectedPage)
+            }
+            composable(route = AppScreen.SearchView.name) {
+                SearchScreen()
             }
         }
     }

@@ -18,8 +18,9 @@ class Downloader(
         val mode = inputData.getString("mode")
         if (mode == "novel") {
             inputData.getString("novelId")?.let { novelId ->
-                val novel = NarouService.getNovelInfo(novelId)
-                val pages = NarouService.getPagesInfo(novelId)
+                val novel = NarouService.getNovelInfo(novelId.lowercase())
+                val pages = NarouService.getPagesInfo(novelId.lowercase())
+
                 val manager = WorkManager.getInstance(ctx)
                 pages.forEach {
                     manager.enqueueUniqueWork(

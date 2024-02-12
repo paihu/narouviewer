@@ -28,15 +28,18 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.ZonedDateTime
+import kotlin.math.min
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ContentScreen(db: AppDatabase, novelId: String, novelType: String, initialPage: Int) {
     val countFlow = db.pageDao().count(novelId,novelType)
     val count by countFlow.collectAsState(initial = 0)
+    if(count==0)return
     val pageFlow = remember {
         Pager(
             config = PagingConfig(pageSize = ITEMS_PER_PAGE, enablePlaceholders = false),
+            initialKey =  min(count-90,initialPage-45),
             pagingSourceFactory = {
                 db.pageDao().getPagingSource(novelId, novelType)
             }
@@ -44,6 +47,7 @@ fun ContentScreen(db: AppDatabase, novelId: String, novelType: String, initialPa
     }
     val pages = pageFlow.collectAsLazyPagingItems()
     val pageState = rememberPagerState(pageCount = { pages.itemCount }, initialPage = initialPage)
+    val pageState = rememberPagerState(pageCount = { pages.itemCount }, initialPage = maxOf(90-(count-initialPage), 45))
 
     HorizontalPager(
         state = pageState,
@@ -73,9 +77,6 @@ fun ContentScreen(db: AppDatabase, novelId: String, novelType: String, initialPa
         }
 
     }
-    LaunchedEffect(Unit) {
-        pageState.scrollToPage(initialPage)
 
-    }
 
 }

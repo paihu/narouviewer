@@ -40,14 +40,14 @@ fun ContentScreen(db: AppDatabase, novelId: String, novelType: String, initialPa
     val pageFlow = remember {
         Pager(
             config = PagingConfig(pageSize = ITEMS_PER_PAGE, enablePlaceholders = false, initialLoadSize = initialLoadSize),
-            initialKey =  min(count-initialLoadSize,initialPage-initialLoadSize/2),
+            initialKey = if(initialPage < initialLoadSize) 0 else min(count-initialLoadSize,initialPage-initialLoadSize/2),
             pagingSourceFactory = {
                 db.pageDao().getPagingSource(novelId, novelType)
             }
         ).flow
     }
     val pages = pageFlow.collectAsLazyPagingItems()
-    val pageState = rememberPagerState(pageCount = { pages.itemCount }, initialPage = maxOf(initialLoadSize-(count-initialPage), initialLoadSize/2))
+    val pageState = rememberPagerState(pageCount = { pages.itemCount }, initialPage = if(initialPage < initialLoadSize) initialPage else maxOf(initialLoadSize-(count-initialPage), initialLoadSize/2))
 
     HorizontalPager(
         state = pageState,

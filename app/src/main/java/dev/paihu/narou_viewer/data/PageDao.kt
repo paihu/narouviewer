@@ -16,6 +16,7 @@ interface PageDao {
 
     @Query("select * from pages where novel_type = :novelType and novel_id = :novelId  order by num")
     fun getAll(novelId: String, novelType: String): List<Page>
+
     @Query("select count(novel_id) from pages where novel_type = :novelType and novel_id = :novelId")
     fun count(novelId: String, novelType: String): Flow<Int>
 

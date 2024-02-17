@@ -93,6 +93,7 @@ class NarouSearchPagingSource(val query: String) : PagingSource<Int, Novel>() {
         return null
     }
 }
+
 object NarouService {
 
     val fetchService by lazy {
@@ -126,7 +127,7 @@ object NarouService {
         return try {
             for (i in 2..ret.select("a.novelview_pager-last")[0].attr("href")
                 .split("=")[1].toInt()) {
-                val res = Jsoup.parse(fetchService.fetchNovelPagesInfo(novelId,i))
+                val res = Jsoup.parse(fetchService.fetchNovelPagesInfo(novelId, i))
                 val addInfo = res.select("dl.novel_sublist2").map { elementToPageInfo(it, novelId) }
                 info.addAll(addInfo)
             }

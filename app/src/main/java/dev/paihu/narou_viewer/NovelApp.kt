@@ -91,7 +91,7 @@ data class NovelAppState(
     val selectedNovelId: String,
     val selectedNovelType: String,
     val selectedPage: Int,
-    val changeSelectedScreen:(screen:AppScreen)->Unit,
+    val changeSelectedScreen: (screen: AppScreen) -> Unit,
     val changeSelectedNovel: (selectedNovelId: String, selectedNovelType: String) -> Unit,
     val changeSelectedPage: (
         id: Int
@@ -115,7 +115,7 @@ fun rememberNovelAppState(): NovelAppState {
             selectedScreen,
             selectedNovelId, selectedNovelType,
             selectedPage,
-            {selectedScreen = it.name  },
+            { selectedScreen = it.name },
             { id, type ->
                 selectedNovelId = id
                 selectedNovelType = type
@@ -183,9 +183,9 @@ fun NovelApp(
                     novelAppState.selectedNovelId,
                     novelAppState.selectedNovelType,
                     click = { num ->
-                    novelAppState.changeSelectedPage(num-1)
-                    navController.navigate(AppScreen.ContentView.name)
-                })
+                        novelAppState.changeSelectedPage(num - 1)
+                        navController.navigate(AppScreen.ContentView.name)
+                    })
             }
             composable(route = AppScreen.ContentView.name) {
                 novelAppState.changeSelectedScreen(AppScreen.ContentView)

@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -53,7 +52,7 @@ fun PageScreen(
         ).flow
     }
     val pages = pageFlow.collectAsLazyPagingItems()
-    val countFlow = db.pageDao().count(novelId,novelType)
+    val countFlow = db.pageDao().count(novelId, novelType)
     val count by countFlow.collectAsState(initial = 0)
     val longClick: (id: Int) -> Unit = { id ->
         pages[id]?.let {
@@ -71,8 +70,7 @@ fun Pages(
     click: (id: Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn(
-    ) {
+    LazyColumn {
         items(pages.itemCount, pages.itemKey()) { index ->
             val page = pages[index] ?: return@items
             PageCard(
@@ -92,7 +90,7 @@ fun PagePreview() {
             flowOf(PagingData.from(Datasource.loadPages("1", "narou"))).collectAsLazyPagingItems(),
             100,
             { id -> Log.w("pages", "LongClick $id") },
-            { id -> Log.w("pages", "$id")})
+            { id -> Log.w("pages", "$id") })
     }
 }
 
@@ -126,8 +124,8 @@ fun PageCard(
                 }
                 Text(
                     text = "${page.num}/${totalPage} ${page.title}",
-                modifier = Modifier.padding(4.dp)
-            )
+                    modifier = Modifier.padding(4.dp)
+                )
             }
         }
     }

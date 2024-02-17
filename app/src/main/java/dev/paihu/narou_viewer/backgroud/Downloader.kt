@@ -26,6 +26,7 @@ class Downloader(
         ctx,
         AppDatabase::class.java, "app.db"
     ).addTypeConverter(ZonedDateTimeConverter()).build()
+
     override suspend fun doWork(): Result {
         val mode = inputData.getString("mode")
         return if (mode == "novel") {
@@ -35,7 +36,7 @@ class Downloader(
         }
     }
 
-    fun finalize(){
+    fun finalize() {
         db.close()
     }
 

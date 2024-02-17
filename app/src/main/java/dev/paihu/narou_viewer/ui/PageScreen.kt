@@ -47,7 +47,6 @@ fun PageScreen(
     val pageFlow = remember {
         Pager(
             config = PagingConfig(pageSize = ITEMS_PER_PAGE, enablePlaceholders = false),
-            initialKey = 50,
             pagingSourceFactory = {
                 db.pageDao().getPagingSource(novelId, novelType)
             }
@@ -73,9 +72,6 @@ fun Pages(
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
-        state = rememberLazyListState(
-            initialFirstVisibleItemIndex = 50,
-        )
     ) {
         items(pages.itemCount, pages.itemKey()) { index ->
             val page = pages[index] ?: return@items

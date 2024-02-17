@@ -39,7 +39,7 @@ fun Novels(
 ) {
     LazyColumn {
         items(novels.itemCount, novels.itemKey()) { index ->
-            val novel = novels[index]!!
+            val novel = novels[index] ?: return@items
             NovelCard(novel, click = { click(novel.novelId, novel.type) })
         }
     }

@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -24,9 +25,6 @@ import androidx.paging.compose.itemKey
 import dev.paihu.narou_viewer.ITEMS_PER_PAGE
 import dev.paihu.narou_viewer.R
 import dev.paihu.narou_viewer.data.AppDatabase
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.time.ZonedDateTime
 import kotlin.math.min
 
@@ -57,10 +55,8 @@ fun ContentScreen(db: AppDatabase, novelId: String, novelType: String, initialPa
         val scrollState = rememberScrollState()
 
         val page = pages[index]!!
-        if(!scrollState.canScrollForward){
-            CoroutineScope(Dispatchers.IO).launch{
-                db.pageDao().upsert(page.copy(readAt= ZonedDateTime.now()))
-            }
+        if (!scrollState.canScrollForward) LaunchedEffect(db) {
+            db.pageDao().upsert(page.copy(readAt = ZonedDateTime.now()))
         }
         Card(
             modifier = Modifier

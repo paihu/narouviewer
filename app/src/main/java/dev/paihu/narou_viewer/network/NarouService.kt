@@ -1,6 +1,7 @@
 package dev.paihu.narou_viewer.network
 
-import android.util.Log
+import androidx.paging.PagingSource
+import androidx.paging.PagingState
 import com.squareup.moshi.Moshi
 import dev.paihu.narou_viewer.model.Novel
 import org.jsoup.Jsoup
@@ -42,7 +43,8 @@ interface NarouSearchApi {
         @Query("st") st: Int? = null,
         @Query("out") out: String = "json",
         @Query("title") title: Int = 1,
-        @Query("of") of: String = "t-n-w-nu"
+        @Query("of") of: String = "t-n-w-nu",
+        @Query("lim") limit: Int? = null
     ): Array<NarouSearchResult>
 
     @GET("/novelapi/api")
@@ -68,6 +70,29 @@ interface NarouApi {
     ): String
 }
 
+class NarouSearchPagingSource(val query: String) : PagingSource<Int, Novel>() {
+
+    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Novel> {
+        if (query.isEmpty()) return LoadResult.Page(
+            data = emptyList(),
+            prevKey = null,
+            nextKey = null
+        )
+        val st = params.key ?: 0
+        val limit = params.loadSize
+        val ret = NarouService.search(query, st, limit = limit)
+        val prevKey = st - limit
+        return LoadResult.Page(
+            data = ret,
+            prevKey = if (prevKey <= 0) null else prevKey,
+            nextKey = if (ret.size < limit) null else st + limit
+        )
+    }
+
+    override fun getRefreshKey(state: PagingState<Int, Novel>): Int? {
+        return null
+    }
+}
 object NarouService {
 
     val fetchService by lazy {
@@ -85,8 +110,8 @@ object NarouService {
             .create(NarouSearchApi::class.java)
     }
 
-    suspend fun search(word: String): List<Novel> {
-        val ret = searchService.searchNovels(word)
+    suspend fun search(word: String, st: Int? = null, limit: Int? = null): List<Novel> {
+        val ret = searchService.searchNovels(word, st, limit = limit)
         return ret.mapNotNull { resultToNovel(it) }
     }
 

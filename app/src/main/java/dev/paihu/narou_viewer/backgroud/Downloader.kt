@@ -129,7 +129,7 @@ class Downloader(
             )
         )
         db.close()
-        Log.i("downloader-page", pageInfo)
+        Log.i("downloader-page", "finish ${page.novelId}/${page.num} ${page.title}")
         Thread.sleep(1000)
         return Result.success()
     }

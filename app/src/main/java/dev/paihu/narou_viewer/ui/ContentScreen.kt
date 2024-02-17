@@ -20,6 +20,7 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import dev.paihu.narou_viewer.ITEMS_PER_PAGE
 import dev.paihu.narou_viewer.R
 import dev.paihu.narou_viewer.data.AppDatabase
@@ -51,6 +52,7 @@ fun ContentScreen(db: AppDatabase, novelId: String, novelType: String, initialPa
 
     HorizontalPager(
         state = pageState,
+        key = pages.itemKey(),
     ) { index ->
         val scrollState = rememberScrollState()
 

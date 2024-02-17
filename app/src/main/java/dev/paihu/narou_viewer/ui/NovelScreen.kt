@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import dev.paihu.narou_viewer.R
 import dev.paihu.narou_viewer.data.Datasource
 import dev.paihu.narou_viewer.data.Novel
@@ -37,7 +38,7 @@ fun Novels(
     modifier: Modifier = Modifier
 ) {
     LazyColumn {
-        items(novels.itemCount) { index ->
+        items(novels.itemCount, novels.itemKey()) { index ->
             val novel = novels[index]!!
             NovelCard(novel, click = { click(novel.novelId, novel.type) })
         }

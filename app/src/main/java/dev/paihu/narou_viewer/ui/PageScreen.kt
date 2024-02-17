@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +24,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import dev.paihu.narou_viewer.ITEMS_PER_PAGE
 import dev.paihu.narou_viewer.R
 import dev.paihu.narou_viewer.data.AppDatabase
@@ -45,6 +47,7 @@ fun PageScreen(
     val pageFlow = remember {
         Pager(
             config = PagingConfig(pageSize = ITEMS_PER_PAGE, enablePlaceholders = false),
+            initialKey = 50,
             pagingSourceFactory = {
                 db.pageDao().getPagingSource(novelId, novelType)
             }
@@ -69,10 +72,18 @@ fun Pages(
     click: (id: Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn {
-        items(pages.itemCount) { index ->
-            val page = pages[index]!!
-            PageCard(page, count, { longClick(index) }, { click(page.num) })
+    LazyColumn(
+        state = rememberLazyListState(
+            initialFirstVisibleItemIndex = 50,
+        )
+    ) {
+        items(pages.itemCount, pages.itemKey()) { index ->
+            val page = pages[index] ?: return@items
+            PageCard(
+                page,
+                count,
+                { if (page.readAt != null) longClick(index) },
+                { click(page.num) })
         }
     }
 }

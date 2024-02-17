@@ -62,9 +62,11 @@ class Downloader(
 
         val pagesInfo = NarouService.getPagesInfo(novelId.lowercase())
         val pages = db.pageDao().getAll(novel.novelId, type)
+        db.close()
         val targets = pagesInfo.filter { info ->
-            pages.find { it.pageId.toInt() == info.pageNum && info.updatedAt > it.updatedAt } == null
+            pages.find { it.num == info.pageNum && info.updatedAt < it.downloadedAt } == null
         }
+        Log.i("downloader", "targetCount ${targets.count()}")
         val manager = WorkManager.getInstance(ctx)
         targets.forEach {
             manager.enqueueUniqueWork(
@@ -116,7 +118,10 @@ class Downloader(
                 ZoneId.systemDefault()
             ),
         )
-        if (updatedAt <= (page.downloadedAt?.toEpochSecond() ?: 0)) return Result.success()
+        if (updatedAt <= (page.downloadedAt?.toEpochSecond() ?: 0)) {
+            db.close()
+            return Result.success()
+        }
         val pageInfo = NarouService.getPage(novelId, pageId)
         db.pageDao().upsert(
             page.copy(

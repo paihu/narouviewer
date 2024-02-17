@@ -1,7 +1,8 @@
 package dev.paihu.narou_viewer.ui
 
 import android.util.Log
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,7 +29,10 @@ import dev.paihu.narou_viewer.data.AppDatabase
 import dev.paihu.narou_viewer.data.Datasource
 import dev.paihu.narou_viewer.data.Page
 import dev.paihu.narou_viewer.ui.theme.NarouviewerTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import java.time.ZonedDateTime
 
 @Composable
@@ -49,15 +53,26 @@ fun PageScreen(
     val pages = pageFlow.collectAsLazyPagingItems()
     val countFlow = db.pageDao().count(novelId,novelType)
     val count by countFlow.collectAsState(initial = 0)
-    Pages(pages, count,click = click)
+    val longClick: (id: Int) -> Unit = { id ->
+        pages[id]?.let {
+            CoroutineScope(Dispatchers.IO).launch { db.pageDao().upsert(it.copy(readAt = null)) }
+        }
+    }
+    Pages(pages, count, longClick = longClick, click = click)
 }
 
 @Composable
-fun Pages(pages: LazyPagingItems<Page>, count:Int,click: (id: Int) -> Unit, modifier: Modifier = Modifier) {
+fun Pages(
+    pages: LazyPagingItems<Page>,
+    count: Int,
+    longClick: (id: Int) -> Unit,
+    click: (id: Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
     LazyColumn {
         items(pages.itemCount) { index ->
             val page = pages[index]!!
-            PageCard(page, count, { click(page.num) })
+            PageCard(page, count, { longClick(index) }, { click(page.num) })
         }
     }
 }
@@ -69,18 +84,28 @@ fun PagePreview() {
         Pages(
             flowOf(PagingData.from(Datasource.loadPages("1", "narou"))).collectAsLazyPagingItems(),
             100,
+            { id -> Log.w("pages", "LongClick $id") },
             { id -> Log.w("pages", "$id")})
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun PageCard(page: Page, totalPage: Int, click: () -> Unit, modifier: Modifier = Modifier) {
+fun PageCard(
+    page: Page,
+    totalPage: Int,
+    longClick: () -> Unit,
+    click: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Card(modifier = modifier) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(dimensionResource(id = R.dimen.padding_small))
-                .clickable { click() }
+                .combinedClickable(
+                    onLongClick = longClick
+                ) { click() }
         ) {
             Row {
                 if (page.readAt != null) {
@@ -115,6 +140,6 @@ private fun PageCardPreview() {
                 "content",
                 ZonedDateTime.now(),
                 ZonedDateTime.now()
-            ), 10, {})
+            ), 10, {}, {})
     }
 }

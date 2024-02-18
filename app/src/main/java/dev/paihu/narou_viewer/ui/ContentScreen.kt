@@ -1,6 +1,5 @@
 package dev.paihu.narou_viewer.ui
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,7 +30,6 @@ import kotlin.math.min
 
 val initialLoadSize = ITEMS_PER_PAGE * 3
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ContentScreen(db: AppDatabase, novelId: String, novelType: String, initialPage: Int) {
     val countFlow = db.pageDao().count(novelId, novelType)

@@ -38,7 +38,7 @@ fun Novels(
     modifier: Modifier = Modifier
 ) {
     LazyColumn {
-        items(novels.itemCount, novels.itemKey()) { index ->
+        items(novels.itemCount, novels.itemKey { "${it.type}-${it.novelId}" }) { index ->
             val novel = novels[index] ?: return@items
             NovelCard(novel, click = { click(novel.novelId, novel.type) })
         }

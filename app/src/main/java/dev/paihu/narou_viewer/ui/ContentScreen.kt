@@ -64,11 +64,12 @@ fun ContentScreen(db: AppDatabase, novelId: String, novelType: String, initialPa
 
     HorizontalPager(
         state = pageState,
-        key = pages.itemKey(),
+        key = pages.itemKey { it.num - 1 },
     ) { index ->
+
         val scrollState = rememberScrollState()
 
-        val page = pages[index]!!
+        val page = pages[index] ?: return@HorizontalPager
         if (!scrollState.canScrollForward) LaunchedEffect(db) {
             db.pageDao().upsert(page.copy(readAt = ZonedDateTime.now()))
         }

@@ -71,7 +71,9 @@ fun Pages(
     modifier: Modifier = Modifier
 ) {
     LazyColumn {
-        items(pages.itemCount, pages.itemKey()) { index ->
+        items(pages.itemCount, pages.itemKey {
+            it.num - 1
+        }) { index ->
             val page = pages[index] ?: return@items
             PageCard(
                 page,

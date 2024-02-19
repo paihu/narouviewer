@@ -43,7 +43,7 @@ fun PageScreen(
     novelType: String,
     click: (num: Int) -> Unit
 ) {
-    val pageFlow = remember {
+    val pageFlow = remember(key1 = novelId, key2 = novelType) {
         Pager(
             config = PagingConfig(pageSize = ITEMS_PER_PAGE, enablePlaceholders = false),
             pagingSourceFactory = {
@@ -56,7 +56,9 @@ fun PageScreen(
     val count by countFlow.collectAsState(initial = 0)
     val longClick: (id: Int) -> Unit = { id ->
         pages[id]?.let {
-            CoroutineScope(Dispatchers.IO).launch { db.pageDao().upsert(it.copy(readAt = null)) }
+            if (it.readAt != null) CoroutineScope(Dispatchers.IO).launch {
+                db.pageDao().upsert(it.copy(readAt = null))
+            }
         }
     }
     Pages(pages, count, longClick = longClick, click = click)
@@ -78,7 +80,7 @@ fun Pages(
             PageCard(
                 page,
                 count,
-                { if (page.readAt != null) longClick(index) },
+                { longClick(index) },
                 { click(page.num) })
         }
     }

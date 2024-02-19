@@ -35,7 +35,7 @@ fun ContentScreen(db: AppDatabase, novelId: String, novelType: String, initialPa
     val countFlow = db.pageDao().count(novelId, novelType)
     val count by countFlow.collectAsState(initial = 0)
     if (count == 0) return
-    val pageFlow = remember {
+    val pageFlow = remember(key1 = novelId, key2 = novelType) {
         Pager(
             config = PagingConfig(
                 pageSize = ITEMS_PER_PAGE,

@@ -7,6 +7,7 @@ import androidx.room.Query
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import androidx.room.Upsert
+import kotlinx.coroutines.flow.Flow
 
 
 enum class SortTarget(val column: String) {
@@ -27,6 +28,10 @@ interface NovelDao {
     @Query("Select * from novels order by :order asc")
     @TypeConverters(Converters::class)
     fun getAll(order: SortTarget = SortTarget.CreatedAt): List<Novel>
+
+    @Query("Select * from novels order by :order asc")
+    @TypeConverters(Converters::class)
+    fun getAllFlow(order: SortTarget = SortTarget.CreatedAt): Flow<List<Novel>>
 
     @Query("Select * from novels order by :order asc")
     @TypeConverters(Converters::class)

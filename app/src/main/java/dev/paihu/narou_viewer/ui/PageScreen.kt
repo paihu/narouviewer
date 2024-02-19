@@ -18,13 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
-import androidx.paging.compose.LazyPagingItems
-import androidx.paging.compose.collectAsLazyPagingItems
-import androidx.paging.compose.itemKey
-import dev.paihu.narou_viewer.ITEMS_PER_PAGE
 import dev.paihu.narou_viewer.R
 import dev.paihu.narou_viewer.data.AppDatabase
 import dev.paihu.narou_viewer.data.Datasource
@@ -32,7 +25,6 @@ import dev.paihu.narou_viewer.data.Page
 import dev.paihu.narou_viewer.ui.theme.NarouviewerTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import java.time.ZonedDateTime
 
@@ -44,42 +36,32 @@ fun PageScreen(
     click: (num: Int) -> Unit
 ) {
     val pageFlow = remember(key1 = novelId, key2 = novelType) {
-        Pager(
-            config = PagingConfig(pageSize = ITEMS_PER_PAGE, enablePlaceholders = false),
-            pagingSourceFactory = {
-                db.pageDao().getPagingSource(novelId, novelType)
-            }
-        ).flow
+        db.pageDao().getAllFlow(novelId, novelType)
     }
-    val pages = pageFlow.collectAsLazyPagingItems()
-    val countFlow = db.pageDao().count(novelId, novelType)
-    val count by countFlow.collectAsState(initial = 0)
+    val pages by pageFlow.collectAsState(initial = emptyList())
+    val count = pages.count()
     val longClick: (id: Int) -> Unit = { id ->
-        pages[id]?.let {
-            if (it.readAt != null) CoroutineScope(Dispatchers.IO).launch {
-                db.pageDao().upsert(it.copy(readAt = null))
-            }
+        val page = pages[id]
+        if (page.readAt != null) CoroutineScope(Dispatchers.IO).launch {
+            db.pageDao().upsert(page.copy(readAt = null))
         }
     }
-    Pages(pages, count, longClick = longClick, click = click)
+    Pages(pages, longClick = longClick, click = click)
 }
 
 @Composable
 fun Pages(
-    pages: LazyPagingItems<Page>,
-    count: Int,
+    pages: List<Page>,
     longClick: (id: Int) -> Unit,
     click: (id: Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn {
-        items(pages.itemCount, pages.itemKey {
-            it.num - 1
-        }) { index ->
-            val page = pages[index] ?: return@items
+        items(pages.size) { index ->
+            val page = pages[index]
             PageCard(
                 page,
-                count,
+                pages.size,
                 { longClick(index) },
                 { click(page.num) })
         }
@@ -91,8 +73,7 @@ fun Pages(
 fun PagePreview() {
     NarouviewerTheme {
         Pages(
-            flowOf(PagingData.from(Datasource.loadPages("1", "narou"))).collectAsLazyPagingItems(),
-            100,
+            Datasource.loadPages("1", "narou"),
             { id -> Log.w("pages", "LongClick $id") },
             { id -> Log.w("pages", "$id") })
     }

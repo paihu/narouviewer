@@ -17,57 +17,26 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.compose.collectAsLazyPagingItems
-import androidx.paging.compose.itemKey
-import dev.paihu.narou_viewer.ITEMS_PER_PAGE
 import dev.paihu.narou_viewer.R
 import dev.paihu.narou_viewer.data.AppDatabase
 import java.time.ZonedDateTime
-import kotlin.math.min
-
-
-val initialLoadSize = ITEMS_PER_PAGE * 3
 
 @Composable
 fun ContentScreen(db: AppDatabase, novelId: String, novelType: String, initialPage: Int) {
-    val countFlow = db.pageDao().count(novelId, novelType)
-    val count by countFlow.collectAsState(initial = 0)
-    if (count == 0) return
-    val pageFlow = remember(key1 = novelId, key2 = novelType) {
-        Pager(
-            config = PagingConfig(
-                pageSize = ITEMS_PER_PAGE,
-                enablePlaceholders = false,
-                initialLoadSize = initialLoadSize
-            ),
-            initialKey = if (initialPage < initialLoadSize) 0 else min(
-                count - initialLoadSize,
-                initialPage - initialLoadSize / 2
-            ),
-            pagingSourceFactory = {
-                db.pageDao().getPagingSource(novelId, novelType)
-            }
-        ).flow
-    }
-    val pages = pageFlow.collectAsLazyPagingItems()
-    val pageState = rememberPagerState(
-        pageCount = { pages.itemCount },
-        initialPage = if (initialPage < initialLoadSize) initialPage else maxOf(
-            initialLoadSize - (count - initialPage),
-            initialLoadSize / 2
-        )
-    )
+    val pageFlow = remember { db.pageDao().getAllFlow(novelId, novelType) }
+    val pages by pageFlow.collectAsState(initial = emptyList())
+    val count = pages.size
 
     HorizontalPager(
-        state = pageState,
-        key = pages.itemKey { it.num - 1 },
+        state = rememberPagerState(
+            pageCount = { count },
+            initialPage = initialPage
+        )
     ) { index ->
 
         val scrollState = rememberScrollState()
 
-        val page = pages[index] ?: return@HorizontalPager
+        val page = pages[index]
         if (!scrollState.canScrollForward) LaunchedEffect(db) {
             db.pageDao().upsert(page.copy(readAt = ZonedDateTime.now()))
         }

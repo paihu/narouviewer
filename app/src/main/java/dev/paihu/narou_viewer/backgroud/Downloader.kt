@@ -14,6 +14,7 @@ import dev.paihu.narou_viewer.data.AppDatabase
 import dev.paihu.narou_viewer.data.Novel
 import dev.paihu.narou_viewer.data.Page
 import dev.paihu.narou_viewer.data.ZonedDateTimeConverter
+import dev.paihu.narou_viewer.network.KakuyomuService
 import dev.paihu.narou_viewer.network.NarouService
 import java.time.Instant
 import java.time.ZoneId
@@ -36,15 +37,14 @@ class Downloader(
         }
     }
 
-    fun finalize() {
-        db.close()
-    }
-
     private suspend fun doNovel(inputData: Data): Result {
         val novelId = inputData.getString("novelId") ?: return Result.failure()
         val type = inputData.getString("type") ?: return Result.failure()
-
-        val novelInfo = NarouService.getNovelInfo(novelId.lowercase())
+        val service = when (type) {
+            "kakuyomu" -> KakuyomuService
+            else -> NarouService
+        }
+        val novelInfo = service.getNovelInfo(novelId.lowercase())
         val novel = db.novelDao().select(novelInfo.novelId!!, type)?.copy(
             title = novelInfo.title,
             author = novelInfo.author,
@@ -61,7 +61,8 @@ class Downloader(
             novel
         )
 
-        val pagesInfo = NarouService.getPagesInfo(novelId.lowercase())
+        val pagesInfo = service.getPagesInfo(novelId.lowercase())
+
         val pages = db.pageDao().getAll(novel.novelId, type)
         db.close()
         val targets = pagesInfo.filter { info ->
@@ -123,7 +124,11 @@ class Downloader(
             db.close()
             return Result.success()
         }
-        val pageInfo = NarouService.getPage(novelId, pageId)
+        val service = when (type) {
+            "kakuyomu" -> KakuyomuService
+            else -> NarouService
+        }
+        val pageInfo = service.getPage(novelId, pageId)
         db.pageDao().upsert(
             page.copy(
                 content = pageInfo,

@@ -31,18 +31,22 @@ import dev.paihu.narou_viewer.ITEMS_PER_PAGE
 import dev.paihu.narou_viewer.R
 import dev.paihu.narou_viewer.backgroud.Downloader
 import dev.paihu.narou_viewer.model.Novel
+import dev.paihu.narou_viewer.network.KakuyomuPagingSource
 import dev.paihu.narou_viewer.network.NarouSearchPagingSource
 
 @Composable
 fun SearchScreen() {
-    NarouSearch()
+    Search()
 }
 
 
 @Composable
-fun NarouSearch() {
+fun Search() {
     var searchWord by remember { mutableStateOf("") }
     var query by remember { mutableStateOf("") }
+    var type by remember {
+        mutableStateOf("narou")
+    }
 
     val click = { query = searchWord }
     val openAlertDialog = remember { mutableStateOf<Novel?>(null) }
@@ -66,25 +70,28 @@ fun NarouSearch() {
 
         }
         if (!query.isEmpty()) {
-            SearchResult(query = query) {
+            SearchResult(query = query, type = type) {
                 openAlertDialog.value = it
             }
         }
 
     }
     openAlertDialog.value?.let {
-        DowloadDialog(novel = openAlertDialog.value!!, close = { openAlertDialog.value = null })
+        DowloadDialog(novel = it, type, close = { openAlertDialog.value = null })
     }
 
 }
 
 @Composable
-fun SearchResult(query: String, click: (novel: Novel) -> Unit) {
+fun SearchResult(query: String, type: String, click: (novel: Novel) -> Unit) {
     val novelFlow =
         Pager(
             config = PagingConfig(pageSize = ITEMS_PER_PAGE, enablePlaceholders = false),
             pagingSourceFactory = {
-                NarouSearchPagingSource(query)
+                when (type) {
+                    "kakuyomu" -> KakuyomuPagingSource(query)
+                    else -> NarouSearchPagingSource(query)
+                }
             }
         ).flow
 
@@ -109,7 +116,7 @@ fun SearchResult(query: String, click: (novel: Novel) -> Unit) {
 }
 
 @Composable
-fun DowloadDialog(novel: Novel, close: () -> Unit) {
+fun DowloadDialog(novel: Novel, type: String, close: () -> Unit) {
     val context = LocalContext.current
     AlertDialog(onDismissRequest = close,
         text = {
@@ -128,7 +135,7 @@ fun DowloadDialog(novel: Novel, close: () -> Unit) {
                             .addTag("narou")
                             .setInputData(
                                 workDataOf(
-                                    "type" to "narou",
+                                    "type" to type,
                                     "mode" to "novel",
                                     "novelId" to novel.novelId,
                                 )

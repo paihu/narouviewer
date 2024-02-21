@@ -94,16 +94,16 @@ class NarouSearchPagingSource(val query: String) : PagingSource<Int, Novel>() {
     }
 }
 
-object NarouService {
+object NarouService : SearchService {
 
-    val fetchService by lazy {
+    private val fetchService by lazy {
         Retrofit.Builder()
             .baseUrl("https://ncode.syosetu.com")
             .addConverterFactory(ScalarsConverterFactory.create())
             .build()
             .create(NarouApi::class.java)
     }
-    val searchService by lazy {
+    private val searchService by lazy {
         Retrofit.Builder()
             .baseUrl("https://api.syosetu.com")
             .addConverterFactory(MoshiConverterFactory.create(Moshi.Builder().build()))
@@ -111,16 +111,16 @@ object NarouService {
             .create(NarouSearchApi::class.java)
     }
 
-    suspend fun search(word: String, st: Int? = null, limit: Int? = null): List<Novel> {
+    override suspend fun search(word: String, st: Int?, limit: Int?): List<Novel> {
         val ret = searchService.searchNovels(word, st, limit = limit)
         return ret.mapNotNull { resultToNovel(it) }
     }
 
-    suspend fun getNovelInfo(novelId: String): Novel {
+    override suspend fun getNovelInfo(novelId: String): Novel {
         return searchService.fetchNovelInfo(novelId).mapNotNull { resultToNovel(it) }.first()
     }
 
-    suspend fun getPagesInfo(novelId: String): List<PageInfo> {
+    override suspend fun getPagesInfo(novelId: String): List<PageInfo> {
         val ret = Jsoup.parse(fetchService.fetchNovelPagesInfo(novelId))
         val info =
             ret.select("dl.novel_sublist2").map { elementToPageInfo(it, novelId) }.toMutableList()
@@ -137,7 +137,7 @@ object NarouService {
         }
     }
 
-    suspend fun getPage(novelId: String, pageId: String): String {
+    override suspend fun getPage(novelId: String, pageId: String): String {
         val ret = Jsoup.parse(fetchService.fetchPageData(novelId, pageId))
         val body = ret.select("#novel_honbun > p").map { it.text() }
         return body.joinToString("\n")

@@ -16,7 +16,7 @@ import java.time.ZonedDateTime
 
 
 interface KakuyomuApi {
-    @GET("/works/{novelId}/")
+    @GET("/works/{novelId}")
     suspend fun fetchNovelPagesInfo(
         @Path("novelId") novelId: String,
     ): String
@@ -29,13 +29,13 @@ interface KakuyomuApi {
 
     @GET("/search")
     suspend fun searchNovels(
-        @Query("q") qury: String,
+        @Query("q") query: String,
         @Query("page") page: Int? = null,
     ): String
 }
 
 
-class KakuyomuPagingSource(val query: String) : PagingSource<Int, Novel>() {
+class KakuyomuPagingSource(private val query: String) : PagingSource<Int, Novel>() {
     private val perPage = 20
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Novel> {
         if (query.isEmpty()) return LoadResult.Page(
@@ -78,9 +78,9 @@ object KakuyomuService : SearchService {
             .create(KakuyomuApi::class.java)
     }
 
-    override suspend fun search(word: String, page: Int?, limit: Int?): List<Novel> {
+    override suspend fun search(word: String, st: Int?, limit: Int?): List<Novel> {
         val novels = mutableListOf<Novel>()
-        val ret = Jsoup.parse(fetchService.searchNovels(word, page))
+        val ret = Jsoup.parse(fetchService.searchNovels(word, st))
         val jsonTree = Jsoup.parse(
             ret.select("script#__NEXT_DATA__")[0].dataNodes().last().toString(),
             JsonTreeBuilder.jsonParser()
@@ -128,7 +128,7 @@ object KakuyomuService : SearchService {
     override suspend fun getNovelInfo(novelId: String): Novel {
         val ret = Jsoup.parse(fetchService.fetchNovelPagesInfo(novelId))
         val jsonTree = Jsoup.parse(
-            ret.select("script#__NEXT_DATA__")[0].dataNodes().last().toString(),
+            ret.select("script#__NEXT_DATA__").last()?.dataNodes()?.last().toString(),
             JsonTreeBuilder.jsonParser()
         )
         val novelQueryId = "#Work\\:$novelId"

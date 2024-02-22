@@ -3,10 +3,11 @@ package dev.paihu.narou_viewer.network
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import dev.paihu.narou_viewer.model.Novel
+import org.json.JSONArray
+import org.json.JSONObject
+import org.json.JSONTokener
 import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
 import org.jsoup.parser.JsonTreeBuilder
-import org.jsoup.select.Elements
 import retrofit2.Retrofit
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import retrofit2.http.GET
@@ -127,29 +128,39 @@ object KakuyomuService : SearchService {
 
     override suspend fun getNovelInfo(novelId: String): Novel {
         val ret = Jsoup.parse(fetchService.fetchNovelPagesInfo(novelId))
-        val jsonTree = Jsoup.parse(
-            ret.select("script#__NEXT_DATA__").last()?.dataNodes()?.last().toString(),
-            JsonTreeBuilder.jsonParser()
-        )
-        val novelQueryId = "#Work\\:$novelId"
-        val title = jsonTree.select("$novelQueryId #title").text()
+        val nextJsonRoot = ret.select("script#__NEXT_DATA__")[0].data()
+
+        val jsonTree = (JSONTokener(
+            nextJsonRoot
+        ).nextValue() as JSONObject).getJSONObject("props").getJSONObject("pageProps")
+            .getJSONObject("__APOLLO_STATE__")
+
+        val novelRoot = jsonTree.getJSONObject("Work:$novelId")
+        val title = novelRoot.getString("title")
 
         val createdAt = ZonedDateTime.parse(
-            jsonTree.select(
-                "$novelQueryId #publishedAt"
-            ).text()
+            novelRoot.getString(
+                "publishedAt"
+            )
         )
         val updatedAt = ZonedDateTime.parse(
-            jsonTree.select(
-                "$novelQueryId #lastEpisodePublishedAt"
-            ).text()
+            novelRoot.getString(
+                "lastEpisodePublishedAt"
+            )
         )
-        val author = jsonTree.select(
-            "#${
-                jsonTree.select("$novelQueryId #author").text()
-                    .replace(":", "\\:")
-            } #activityName"
-        ).text()
+        val authorId = novelRoot.getJSONObject("author").getString("__ref")
+        val authorObj = jsonTree.getJSONObject(authorId)
+        val author = authorObj.getString(
+            "activityName"
+        )
+        val novel = Novel(
+            title = title,
+            author = author,
+            novelId = novelId,
+            type = "kakuyomu",
+            createdAt = createdAt,
+            updatedAt = updatedAt
+        )
         return Novel(
             title = title,
             author = author,
@@ -162,16 +173,18 @@ object KakuyomuService : SearchService {
 
     override suspend fun getPagesInfo(novelId: String): List<PageInfo> {
         val ret = Jsoup.parse(fetchService.fetchNovelPagesInfo(novelId))
-        val jsonTree = Jsoup.parse(
-            ret.select("script#__NEXT_DATA__")[0].dataNodes().last().toString(),
-            JsonTreeBuilder.jsonParser()
-        )
-        val rootContents = jsonTree.select("#Work\\:$novelId #tableOfContents")
+        val nextJsonRoot = ret.select("script#__NEXT_DATA__")[0].data()
+
+        val root = (JSONTokener(
+            nextJsonRoot
+        ).nextValue() as JSONObject).getJSONObject("props").getJSONObject("pageProps")
+            .getJSONObject("__APOLLO_STATE__")
+        val rootContents = root.getJSONObject("Work:$novelId").getJSONArray("tableOfContents")
         return scrapePageInfo(
             novelId,
-            jsonTree,
+            root,
             rootContents
-        ).mapIndexed { index, pageInfo -> return listOf(pageInfo.copy(pageNum = index + 1)) }
+        ).mapIndexed { index, pageInfo -> pageInfo.copy(pageNum = index + 1) }
     }
 
     override suspend fun getPage(novelId: String, pageId: String): String {
@@ -181,28 +194,38 @@ object KakuyomuService : SearchService {
 
     private fun scrapePageInfo(
         novelId: String,
-        root: Document,
-        contents: Elements
+        root: JSONObject,
+        contents: JSONArray
     ): List<PageInfo> {
-        return contents.map {
-            val id = it.text().replace(":", "\\:")
-            return if (id.startsWith("TableOfContentsChapter")) {
-                scrapePageInfo(novelId, root, root.select("#$id #episodeUnions"))
-            } else {
-                val title = root.select("#$id #title").text()
-                val createdAt = ZonedDateTime.parse(root.select("#$id #publishedAt").text())
-                return listOf(
+        val pageInfo = mutableListOf<PageInfo>()
+        for (i in 0 until contents.length()) {
+            val contentId = contents.getJSONObject(i).getString("__ref")
+            if (contentId.startsWith("Episode")) {
+                val episode = root.getJSONObject(contentId)
+                val title = episode.getString("title")
+                val id = episode.getString("id")
+                val createdAt = ZonedDateTime.parse(episode.getString("publishedAt"))
+                pageInfo.add(
                     PageInfo(
                         novelId = novelId,
-                        pageId = id.split(":").last(),
-                        title = title,
                         pageNum = 0,
+                        title = title,
                         createdAt = createdAt,
-                        updatedAt = createdAt
+                        updatedAt = createdAt,
+                        pageId = id
+                    )
+                )
+            } else {
+                pageInfo.addAll(
+                    scrapePageInfo(
+                        novelId,
+                        root,
+                        root.getJSONObject(contentId).getJSONArray("episodeUnions")
                     )
                 )
             }
         }
+        return pageInfo
 
     }
 }

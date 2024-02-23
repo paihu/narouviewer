@@ -50,11 +50,13 @@ class KakuyomuPagingSource(private val query: String) : PagingSource<Int, Novel>
         val prevKey = st - limit
         var page = st / perPage
         val offset = st % perPage
-        novels.addAll(KakuyomuService.search(query, page).drop(offset))
-        page += 1
         while (novels.size < limit) {
             val results = KakuyomuService.search(query, page)
-            novels.addAll(results)
+            if (novels.size == 0) {
+                novels.addAll(results.drop(offset))
+            } else {
+                novels.addAll(results)
+            }
             if (results.size < perPage) break
             page += 1
         }
@@ -66,7 +68,7 @@ class KakuyomuPagingSource(private val query: String) : PagingSource<Int, Novel>
     }
 
     override fun getRefreshKey(state: PagingState<Int, Novel>): Int? {
-        TODO("Not yet implemented")
+        return null
     }
 }
 
@@ -153,14 +155,7 @@ object KakuyomuService : SearchService {
         val author = authorObj.getString(
             "activityName"
         )
-        val novel = Novel(
-            title = title,
-            author = author,
-            novelId = novelId,
-            type = "kakuyomu",
-            createdAt = createdAt,
-            updatedAt = updatedAt
-        )
+
         return Novel(
             title = title,
             author = author,

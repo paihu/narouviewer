@@ -17,6 +17,7 @@ data class Novel(
     val author: String,
     val type: String,
     val title: String,
+    @ColumnInfo(name = "last_read_page") val lastReadPage: Int? = 0,
     @ColumnInfo(name = "updated_at") val updatedAt: ZonedDateTime,
     @ColumnInfo(name = "created_at") val createdAt: ZonedDateTime,
 

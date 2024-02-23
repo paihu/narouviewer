@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -33,30 +35,33 @@ fun PageScreen(
     db: AppDatabase,
     novelId: String,
     novelType: String,
+    initialPageNum: Int,
     click: (num: Int) -> Unit
 ) {
     val pageFlow = remember(key1 = novelId, key2 = novelType) {
         db.pageDao().getAllFlow(novelId, novelType)
     }
+
     val pages by pageFlow.collectAsState(initial = emptyList())
-    val count = pages.count()
     val longClick: (id: Int) -> Unit = { id ->
         val page = pages[id]
         if (page.readAt != null) CoroutineScope(Dispatchers.IO).launch {
             db.pageDao().upsert(page.copy(readAt = null))
         }
     }
-    Pages(pages, longClick = longClick, click = click)
+    Pages(pages, initialPageNum, longClick = longClick, click = click)
 }
 
 @Composable
 fun Pages(
     pages: List<Page>,
+    initialPageNum: Int = 0,
     longClick: (id: Int) -> Unit,
     click: (id: Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn {
+    val state = rememberLazyListState()
+    LazyColumn(state = state) {
         items(pages.size) { index ->
             val page = pages[index]
             PageCard(
@@ -66,6 +71,10 @@ fun Pages(
                 { click(page.num) })
         }
     }
+    LaunchedEffect(Unit) {
+        state.scrollToItem(initialPageNum)
+
+    }
 }
 
 @Composable
@@ -74,6 +83,7 @@ fun PagePreview() {
     NarouviewerTheme {
         Pages(
             Datasource.loadPages("1", "narou"),
+            0,
             { id -> Log.w("pages", "LongClick $id") },
             { id -> Log.w("pages", "$id") })
     }

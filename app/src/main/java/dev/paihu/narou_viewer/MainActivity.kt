@@ -9,6 +9,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.room.Room
 import dev.paihu.narou_viewer.data.AppDatabase
+import dev.paihu.narou_viewer.data.MIGRATION_1_2
 import dev.paihu.narou_viewer.data.ZonedDateTimeConverter
 import dev.paihu.narou_viewer.ui.theme.NarouviewerTheme
 
@@ -18,7 +19,7 @@ class MainActivity : ComponentActivity() {
         val db = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java, "app.db"
-        ).addTypeConverter(ZonedDateTimeConverter()).build()
+        ).addTypeConverter(ZonedDateTimeConverter()).addMigrations(MIGRATION_1_2).build()
         setContent {
             NarouviewerTheme {
                 // A surface container using the 'background' color from the theme

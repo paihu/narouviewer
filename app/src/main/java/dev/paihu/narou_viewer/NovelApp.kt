@@ -178,10 +178,17 @@ fun NovelApp(
             }
             composable(route = AppScreen.PageList.name) {
                 novelAppState.changeSelectedScreen(AppScreen.PageList)
+                //val novel = remember(key1=novelAppState.selectedNovelId,key2=novelAppState.selectedNovelType){
+                //db.novelDao().select(
+                //        novelAppState.selectedNovelId,
+                //        novelAppState.selectedNovelType,
+                //    )
+                //}
                 PageScreen(
                     db,
                     novelAppState.selectedNovelId,
                     novelAppState.selectedNovelType,
+                    0,
                     click = { num ->
                         novelAppState.changeSelectedPage(num - 1)
                         navController.navigate(AppScreen.ContentView.name)

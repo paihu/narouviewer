@@ -11,6 +11,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import dev.paihu.narou_viewer.data.AppDatabase
+import dev.paihu.narou_viewer.data.MIGRATION_1_2
 import dev.paihu.narou_viewer.data.Novel
 import dev.paihu.narou_viewer.data.Page
 import dev.paihu.narou_viewer.data.ZonedDateTimeConverter
@@ -26,7 +27,7 @@ class Downloader(
     val db = Room.databaseBuilder(
         ctx,
         AppDatabase::class.java, "app.db"
-    ).addTypeConverter(ZonedDateTimeConverter()).build()
+    ).addTypeConverter(ZonedDateTimeConverter()).addMigrations(MIGRATION_1_2).build()
 
     override suspend fun doWork(): Result {
         val mode = inputData.getString("mode")

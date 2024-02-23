@@ -124,7 +124,10 @@ fun SearchResult(query: String, type: String, click: (novel: Novel) -> Unit) {
                 .padding(bottom = dimensionResource(id = R.dimen.padding_small))
                 .clickable { click(novel) }
             ) {
-                Text(novel.title)
+                Column {
+                    Text(novel.title)
+                    Text(novel.author)
+                }
             }
         }
     }

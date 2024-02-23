@@ -72,7 +72,6 @@ dependencies {
     implementation(libs.androidx.paging.common.ktx)
     implementation(libs.androidx.paging.compose)
     implementation(libs.jsoup)
-    implementation(libs.jsoup.json)
     implementation(libs.retrofit)
     implementation(libs.converter.scalars)
     implementation(libs.androidx.work.runtime.ktx)

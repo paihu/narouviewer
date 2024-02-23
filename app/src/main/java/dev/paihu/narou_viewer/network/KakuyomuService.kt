@@ -189,7 +189,7 @@ object KakuyomuService : SearchService {
 
     override suspend fun getPage(novelId: String, pageId: String): String {
         val ret = Jsoup.parse(fetchService.fetchPageData(novelId, pageId))
-        return ret.select(".widget-episodeBody p").map { it.text() }.joinToString("\n")
+        return ret.select(".widget-episodeBody p").joinToString("\n") { it.text() }
     }
 
     private fun scrapePageInfo(

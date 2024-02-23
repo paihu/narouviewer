@@ -43,7 +43,6 @@ fun ContentScreen(db: AppDatabase, novelId: String, novelType: String, initialPa
         Card(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(scrollState)
         ) {
             Column(
                 modifier = Modifier
@@ -51,7 +50,10 @@ fun ContentScreen(db: AppDatabase, novelId: String, novelType: String, initialPa
                     .padding(dimensionResource(id = R.dimen.padding_small))
             ) {
                 Text("(${page.num}/${count}) ${page.title}")
-                Text(page.content ?: "not downloaded")
+                Text(
+                    page.content ?: "not downloaded",
+                    modifier = Modifier.verticalScroll(scrollState)
+                )
             }
 
         }

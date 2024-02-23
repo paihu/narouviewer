@@ -19,7 +19,8 @@ class MainActivity : ComponentActivity() {
         val db = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java, "app.db"
-        ).addTypeConverter(ZonedDateTimeConverter()).addMigrations(MIGRATION_1_2).build()
+        ).addTypeConverter(ZonedDateTimeConverter()).addMigrations(MIGRATION_1_2)
+            .allowMainThreadQueries().build()
         setContent {
             NarouviewerTheme {
                 // A surface container using the 'background' color from the theme

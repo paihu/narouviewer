@@ -72,14 +72,14 @@ fun Pages(
         }
     }
     LaunchedEffect(Unit) {
-        state.scrollToItem(initialPageNum)
+        state.scrollToItem(maxOf(0, initialPageNum - 5))
 
     }
 }
 
 @Composable
 @Preview
-fun PagePreview() {
+fun PagesPreview() {
     NarouviewerTheme {
         Pages(
             Datasource.loadPages("1", "narou"),

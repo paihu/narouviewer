@@ -1,6 +1,8 @@
 package dev.paihu.narou_viewer
 
-import android.os.Bundle
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,18 +13,25 @@ import dev.paihu.narou_viewer.data.initDb
 import dev.paihu.narou_viewer.ui.theme.NarouviewerTheme
 
 class MainActivity : ComponentActivity() {
-    val db by lazy { initDb(applicationContext) }
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    private val db by lazy { initDb(applicationContext) }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val uri = Uri.parse(intent?.clipData?.getItemAt(0)?.text.toString())
+        setResult(Activity.RESULT_OK)
 
         setContent {
             NarouviewerTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    NovelApp(db)
+                    NovelApp(db, uri)
                 }
             }
         }

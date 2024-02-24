@@ -149,7 +149,7 @@ fun NovelApp(
                 else -> null
             }?.let { service ->
                 service.getNovelId(uri)?.let {
-                    service.getNovelInfo(it)
+                    downloadTarget = service.getNovelInfo(it)
                     }
             }
         }

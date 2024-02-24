@@ -24,3 +24,14 @@ class ZonedDateTimeConverter {
         }
     }
 }
+
+enum class SortTarget(val column: String) {
+    CreatedAt("created_at"),
+    UpdatedAt("updated_at"),
+}
+
+
+class SortTargetConverter {
+    @TypeConverter
+    fun fromSortTarget(value: SortTarget) = value.column
+}

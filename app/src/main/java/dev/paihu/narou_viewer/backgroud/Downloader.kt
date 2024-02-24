@@ -14,6 +14,7 @@ import dev.paihu.narou_viewer.data.Page
 import dev.paihu.narou_viewer.data.initDb
 import dev.paihu.narou_viewer.network.KakuyomuService
 import dev.paihu.narou_viewer.network.NarouService
+import kotlinx.coroutines.delay
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -136,7 +137,7 @@ class Downloader(
         )
         db.close()
         Log.i("downloader-page", "finish ${page.novelId}/${page.num} ${page.title}")
-        Thread.sleep(1000)
+        delay(1000)
         return Result.success()
     }
 }

@@ -1,5 +1,6 @@
 package dev.paihu.narou_viewer
 
+import android.net.Uri
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -15,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -32,7 +34,11 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import dev.paihu.narou_viewer.data.AppDatabase
+import dev.paihu.narou_viewer.model.Novel
+import dev.paihu.narou_viewer.network.KakuyomuService
+import dev.paihu.narou_viewer.network.NarouService
 import dev.paihu.narou_viewer.ui.ContentScreen
+import dev.paihu.narou_viewer.ui.DownloadDialog
 import dev.paihu.narou_viewer.ui.NovelScreen
 import dev.paihu.narou_viewer.ui.PageScreen
 import dev.paihu.narou_viewer.ui.SearchScreen
@@ -130,6 +136,7 @@ val ITEMS_PER_PAGE = 30
 @Composable
 fun NovelApp(
     db: AppDatabase,
+    uri: Uri? = null,
     navController: NavHostController = rememberNavController(),
 ) {
     val novelAppState = rememberNovelAppState()
@@ -139,7 +146,31 @@ fun NovelApp(
     val currentScreen = AppScreen.valueOf(
         backStackEntry?.destination?.route ?: novelAppState.selectedScreen
     )
+    var downloadTarget by remember { mutableStateOf<Novel?>(null) }
 
+    LaunchedEffect(uri) {
+        if (uri != null) {
+            val service = when (uri.host) {
+                "ncode.syosetu.com" -> NarouService
+                "kakuyomu.jp" -> KakuyomuService
+                else -> null
+            }
+
+            if (service != null) {
+                "https://ncode.syosetu.com/([^/]+)|https://kakuyomu.jp/works/([^/]+)".toRegex()
+                    .find(uri.toString())?.groupValues?.let { group ->
+                        val novelId = group[1].ifEmpty { group[2] }
+                        downloadTarget = service.getNovelInfo(novelId)
+                    }
+            }
+
+        }
+    }
+    downloadTarget?.let {
+        DownloadDialog(novel = it) {
+            downloadTarget = null
+        }
+    }
 
     Scaffold(
         topBar = {

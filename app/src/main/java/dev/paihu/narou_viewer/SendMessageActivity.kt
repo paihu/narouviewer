@@ -1,24 +1,31 @@
 package dev.paihu.narou_viewer
 
-import android.os.Bundle
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import androidx.room.Room
-import dev.paihu.narou_viewer.data.AppDatabase
-import dev.paihu.narou_viewer.data.ZonedDateTimeConverter
+import dev.paihu.narou_viewer.data.initDb
 import dev.paihu.narou_viewer.ui.theme.NarouviewerTheme
 
 class SendMessageActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        val db = Room.databaseBuilder(
-            applicationContext,
-            AppDatabase::class.java, "app.db"
-        ).addTypeConverter(ZonedDateTimeConverter()).build()
+
+    val db by lazy { initDb(applicationContext) }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val uri = Uri.parse(intent?.clipData?.getItemAt(0)?.text.toString())
+        setResult(Activity.RESULT_OK)
+
         setContent {
             NarouviewerTheme {
                 // A surface container using the 'background' color from the theme
@@ -26,9 +33,11 @@ class SendMessageActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxWidth(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    NovelApp(db)
+                    NovelApp(db, uri)
                 }
             }
         }
     }
+
+
 }

@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
-    <share-target android:targetClass="dev.paihu.narou_viewer.SendMessageActivity">
-        <data android:mimeType="text/plain" />
-        <category android:name="dev.paihu.narou_viewer.category.TEXT_SHARE_TARGET" />
-    </share-target>
-</shortcuts>

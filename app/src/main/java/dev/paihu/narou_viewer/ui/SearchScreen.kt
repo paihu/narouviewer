@@ -93,7 +93,7 @@ fun Search() {
 
     }
     openAlertDialog.value?.let {
-        DowloadDialog(novel = it, type, close = { openAlertDialog.value = null })
+        DownloadDialog(novel = it, close = { openAlertDialog.value = null })
     }
 
 }
@@ -135,7 +135,7 @@ fun SearchResult(query: String, type: String, click: (novel: Novel) -> Unit) {
 }
 
 @Composable
-fun DowloadDialog(novel: Novel, type: String, close: () -> Unit) {
+fun DownloadDialog(novel: Novel, close: () -> Unit) {
     val context = LocalContext.current
     AlertDialog(onDismissRequest = close,
         text = {
@@ -154,7 +154,7 @@ fun DowloadDialog(novel: Novel, type: String, close: () -> Unit) {
                             .addTag("narou")
                             .setInputData(
                                 workDataOf(
-                                    "type" to type,
+                                    "type" to novel.type,
                                     "mode" to "novel",
                                     "novelId" to novel.novelId,
                                 )

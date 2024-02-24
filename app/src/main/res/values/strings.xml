@@ -1,5 +1,3 @@
 <resources>
-    <string name="app_name">narou-viewer</string>
-    <string name="happy_birthday_hoge">happy birthday hoge!</string>
-    <string name="from_emma">from emma</string>
+    <string name="app_name">offline-viewer</string>
 </resources>

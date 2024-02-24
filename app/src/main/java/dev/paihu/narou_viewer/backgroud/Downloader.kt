@@ -2,7 +2,6 @@ package dev.paihu.narou_viewer.backgroud
 
 import android.content.Context
 import android.util.Log
-import androidx.room.Room
 import androidx.work.CoroutineWorker
 import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
@@ -10,11 +9,9 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import dev.paihu.narou_viewer.data.AppDatabase
-import dev.paihu.narou_viewer.data.MIGRATION_1_2
 import dev.paihu.narou_viewer.data.Novel
 import dev.paihu.narou_viewer.data.Page
-import dev.paihu.narou_viewer.data.ZonedDateTimeConverter
+import dev.paihu.narou_viewer.data.initDb
 import dev.paihu.narou_viewer.network.KakuyomuService
 import dev.paihu.narou_viewer.network.NarouService
 import java.time.Instant
@@ -22,12 +19,9 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 
 class Downloader(
-    val ctx: Context, params: WorkerParameters
+    private val ctx: Context, params: WorkerParameters
 ) : CoroutineWorker(ctx, params) {
-    val db = Room.databaseBuilder(
-        ctx,
-        AppDatabase::class.java, "app.db"
-    ).addTypeConverter(ZonedDateTimeConverter()).addMigrations(MIGRATION_1_2).build()
+    val db = initDb(ctx)
 
     override suspend fun doWork(): Result {
         val mode = inputData.getString("mode")

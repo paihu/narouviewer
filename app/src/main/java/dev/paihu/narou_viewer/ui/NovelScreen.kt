@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.flowOf
 import java.time.ZonedDateTime
 
 @Composable
-fun NovelScreen(novels: LazyPagingItems<Novel>, click: (id: String, type: String) -> Unit) {
+fun NovelScreen(novels: LazyPagingItems<Novel>, click: (novel: Novel) -> Unit) {
     Novels(
         novels, click = click
     )
@@ -34,13 +34,13 @@ fun NovelScreen(novels: LazyPagingItems<Novel>, click: (id: String, type: String
 @Composable
 fun Novels(
     novels: LazyPagingItems<Novel>,
-    click: (id: String, type: String) -> Unit,
+    click: (novel: Novel) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn {
         items(novels.itemCount, novels.itemKey { "${it.type}-${it.novelId}" }) { index ->
             val novel = novels[index] ?: return@items
-            NovelCard(novel, click = { click(novel.novelId, novel.type) })
+            NovelCard(novel, click = { click(novel) })
         }
     }
 }
@@ -51,7 +51,7 @@ fun NovelsPreview() {
     NarouviewerTheme {
         Novels(
             flowOf(PagingData.from(Datasource.loadNovels())).collectAsLazyPagingItems(),
-            { id, type -> Log.w("novels", "$id $type") })
+            { novel -> Log.w("novels", "${novel.novelId} ${novel.type}") })
     }
 }
 

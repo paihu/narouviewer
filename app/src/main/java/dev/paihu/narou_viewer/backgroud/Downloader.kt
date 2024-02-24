@@ -47,16 +47,16 @@ class Downloader(
         val type = inputData.getString("type") ?: return Result.failure()
         val service = getService(type) ?: return Result.failure()
         val novelInfo = service.getNovelInfo(novelId.lowercase())
-        val novel = db.novelDao().select(novelInfo.novelId!!, type)?.copy(
+        val novel = db.novelDao().select(novelInfo.novelId, type)?.copy(
             title = novelInfo.title,
             author = novelInfo.author,
-            updatedAt = novelInfo.updatedAt ?: novelInfo.createdAt!!
+            updatedAt = novelInfo.updatedAt
         ) ?: Novel(
             novelId = novelInfo.novelId,
             type = type,
             title = novelInfo.title,
             author = novelInfo.author,
-            updatedAt = novelInfo.updatedAt ?: ZonedDateTime.now(),
+            updatedAt = novelInfo.updatedAt,
             createdAt = ZonedDateTime.now(),
         )
         db.novelDao().upsert(

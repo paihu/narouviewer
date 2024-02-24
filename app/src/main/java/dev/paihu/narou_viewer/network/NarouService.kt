@@ -4,7 +4,7 @@ import android.net.Uri
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.squareup.moshi.Moshi
-import dev.paihu.narou_viewer.model.Novel
+import dev.paihu.narou_viewer.data.Novel
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import retrofit2.Retrofit
@@ -25,7 +25,8 @@ data class NarouSearchResult(
     val title: String?,
     val writer: String?,
     val ncode: String?,
-    val novelupdated_at: String?
+    val novelupdated_at: String?,
+    val general_firstup: String?,
 )
 
 data class PageInfo(
@@ -44,7 +45,7 @@ interface NarouSearchApi {
         @Query("st") st: Int? = null,
         @Query("out") out: String = "json",
         @Query("title") title: Int = 1,
-        @Query("of") of: String = "t-n-w-nu",
+        @Query("of") of: String = "t-n-w-nu-gf",
         @Query("lim") limit: Int? = null
     ): Array<NarouSearchResult>
 
@@ -52,7 +53,7 @@ interface NarouSearchApi {
     suspend fun fetchNovelInfo(
         @Query("ncode") ncode: String? = null,
         @Query("out") out: String = "json",
-        @Query("of") of: String = "t-n-w-nu"
+        @Query("of") of: String = "t-n-w-nu-gf"
     ): Array<NarouSearchResult>
 }
 
@@ -181,7 +182,8 @@ object NarouService : SearchService {
             author = result.writer!!,
             novelId = result.ncode!!.lowercase(),
             type = type,
-            updatedAt = result.novelupdated_at?.toZoneDateTime("yyyy-MM-dd HH:mm:ss"),
+            updatedAt = result.novelupdated_at!!.toZoneDateTime("yyyy-MM-dd HH:mm:ss")!!,
+            createdAt = result.general_firstup!!.toZoneDateTime("yyyy-MM-dd HH:mm:ss")!!,
         )
     }
 

@@ -34,7 +34,7 @@ import androidx.work.workDataOf
 import dev.paihu.narou_viewer.ITEMS_PER_PAGE
 import dev.paihu.narou_viewer.R
 import dev.paihu.narou_viewer.backgroud.Downloader
-import dev.paihu.narou_viewer.model.Novel
+import dev.paihu.narou_viewer.data.Novel
 import dev.paihu.narou_viewer.network.KakuyomuPagingSource
 import dev.paihu.narou_viewer.network.NarouSearchPagingSource
 

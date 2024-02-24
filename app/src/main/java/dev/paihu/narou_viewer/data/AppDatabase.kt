@@ -27,5 +27,5 @@ fun initDb(context: Context): AppDatabase {
         context,
         AppDatabase::class.java, "app.db"
     ).addTypeConverter(ZonedDateTimeConverter()).addMigrations(MIGRATION_1_2)
-        .allowMainThreadQueries().build()
+        .build()
 }

@@ -1,7 +1,7 @@
 package dev.paihu.narou_viewer.network
 
 import android.net.Uri
-import dev.paihu.narou_viewer.model.Novel
+import dev.paihu.narou_viewer.data.Novel
 
 interface SearchService {
     val host: String

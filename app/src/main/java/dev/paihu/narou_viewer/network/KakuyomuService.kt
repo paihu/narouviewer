@@ -3,7 +3,7 @@ package dev.paihu.narou_viewer.network
 import android.net.Uri
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import dev.paihu.narou_viewer.model.Novel
+import dev.paihu.narou_viewer.data.Novel
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener

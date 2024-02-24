@@ -2,12 +2,11 @@ package dev.paihu.narou_viewer.data
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import dev.paihu.narou_viewer.model.Page
 import java.time.ZonedDateTime
 import kotlin.math.max
 
 
-class PagePagingSource(private val novelId: Int) :
+class PagePagingSource(private val novelId: String) :
     PagingSource<Int, Page>() {
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Page> {
         val start = params.key ?: STARTING_KEY
@@ -15,14 +14,14 @@ class PagePagingSource(private val novelId: Int) :
         return LoadResult.Page(
             data = range.map { number ->
                 Page(
-                    // Generate consecutive increasing numbers as the article id
-                    id = number,
+                    novelType = "narou",
                     novelId = novelId,
-                    pageNum = number,
+                    num = number,
                     pageId = number.toString(),
                     title = "Article $novelId-$number",
-                    pageText = "Author $number",
-                    updateAt = ZonedDateTime.now(),
+                    content = "Author $number",
+                    updatedAt = ZonedDateTime.now(),
+                    createdAt = ZonedDateTime.now(),
                 )
             },
 
@@ -38,7 +37,7 @@ class PagePagingSource(private val novelId: Int) :
     override fun getRefreshKey(state: PagingState<Int, Page>): Int? {
         val anchorPosition = state.anchorPosition ?: return null
         val article = state.closestItemToPosition(anchorPosition) ?: return null
-        return ensureValidKey(key = article.pageNum - (state.config.pageSize / 2))
+        return ensureValidKey(key = article.num - (state.config.pageSize / 2))
     }
 
     private fun ensureValidKey(key: Int) = max(STARTING_KEY, key)

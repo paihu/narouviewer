@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import dev.paihu.narou_viewer.R
 import dev.paihu.narou_viewer.data.AppDatabase
 import dev.paihu.narou_viewer.data.Datasource
+import dev.paihu.narou_viewer.data.Novel
 import dev.paihu.narou_viewer.data.Page
 import dev.paihu.narou_viewer.ui.theme.NarouviewerTheme
 import kotlinx.coroutines.CoroutineScope
@@ -33,13 +34,11 @@ import java.time.ZonedDateTime
 @Composable
 fun PageScreen(
     db: AppDatabase,
-    novelId: String,
-    novelType: String,
-    initialPageNum: Int,
+    novel: Novel,
     click: (num: Int) -> Unit
 ) {
-    val pageFlow = remember(key1 = novelId, key2 = novelType) {
-        db.pageDao().getAllFlow(novelId, novelType)
+    val pageFlow = remember(key1 = novel) {
+        db.pageDao().getAllFlow(novel.novelId, novel.type)
     }
 
     val pages by pageFlow.collectAsState(initial = emptyList())
@@ -49,13 +48,13 @@ fun PageScreen(
             db.pageDao().upsert(page.copy(readAt = null))
         }
     }
-    Pages(pages, initialPageNum, longClick = longClick, click = click)
+    Pages(pages, novel.lastReadPage ?: 0, longClick = longClick, click = click)
 }
 
 @Composable
 fun Pages(
     pages: List<Page>,
-    initialPageNum: Int = 0,
+    initialPageNum: Int,
     longClick: (id: Int) -> Unit,
     click: (id: Int) -> Unit,
     modifier: Modifier = Modifier

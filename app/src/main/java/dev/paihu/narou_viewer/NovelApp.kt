@@ -34,7 +34,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import dev.paihu.narou_viewer.data.AppDatabase
-import dev.paihu.narou_viewer.model.Novel
+import dev.paihu.narou_viewer.data.Novel
 import dev.paihu.narou_viewer.network.KakuyomuService
 import dev.paihu.narou_viewer.network.NarouService
 import dev.paihu.narou_viewer.ui.ContentScreen
@@ -94,11 +94,10 @@ fun AppBar(
 
 data class NovelAppState(
     val selectedScreen: String,
-    val selectedNovelId: String,
-    val selectedNovelType: String,
+    val selectedNovel: Novel?,
     val selectedPage: Int,
     val changeSelectedScreen: (screen: AppScreen) -> Unit,
-    val changeSelectedNovel: (selectedNovelId: String, selectedNovelType: String) -> Unit,
+    val changeSelectedNovel: (selectedNovel: Novel) -> Unit,
     val changeSelectedPage: (
         id: Int
     ) -> Unit
@@ -107,31 +106,25 @@ data class NovelAppState(
 
 @Composable
 fun rememberNovelAppState(): NovelAppState {
-    var selectedNovelId by rememberSaveable { mutableStateOf("") }
-    var selectedNovelType by rememberSaveable {
-        mutableStateOf("")
-    }
+    var selectedNovel by rememberSaveable { mutableStateOf<Novel?>(null) }
 
     var selectedPage by rememberSaveable { mutableIntStateOf(0) }
     var selectedScreen by rememberSaveable {
         mutableStateOf(AppScreen.NovelList.name)
     }
-    return remember(selectedScreen, selectedNovelId, selectedNovelType, selectedPage) {
+    return remember(selectedScreen, selectedNovel, selectedPage) {
         NovelAppState(
             selectedScreen,
-            selectedNovelId, selectedNovelType,
+            selectedNovel,
             selectedPage,
             { selectedScreen = it.name },
-            { id, type ->
-                selectedNovelId = id
-                selectedNovelType = type
-            },
+            { selectedNovel = it },
             { selectedPage = it },
         )
     }
 }
 
-val ITEMS_PER_PAGE = 30
+const val ITEMS_PER_PAGE = 30
 
 @Composable
 fun NovelApp(
@@ -197,27 +190,17 @@ fun NovelApp(
                         pagingSourceFactory = { db.novelDao().getPagingSource() }
                     ).flow
                 }
-                NovelScreen(novels.collectAsLazyPagingItems(), click = { id, type ->
-                    novelAppState.changeSelectedNovel(id, type)
+                NovelScreen(novels.collectAsLazyPagingItems(), click = { novel ->
+                    novelAppState.changeSelectedNovel(novel)
                     navController.navigate(AppScreen.PageList.name)
                 })
             }
             composable(route = AppScreen.PageList.name) {
                 novelAppState.changeSelectedScreen(AppScreen.PageList)
-                val novel = remember(
-                    key1 = novelAppState.selectedNovelId,
-                    key2 = novelAppState.selectedNovelType
-                ) {
-                    db.novelDao().select(
-                        novelAppState.selectedNovelId,
-                        novelAppState.selectedNovelType,
-                    )
-                }
+                novelAppState.selectedNovel ?: return@composable
                 PageScreen(
                     db,
-                    novelAppState.selectedNovelId,
-                    novelAppState.selectedNovelType,
-                    novel?.lastReadPage ?: 0,
+                    novelAppState.selectedNovel,
                     click = { num ->
                         novelAppState.changeSelectedPage(num - 1)
                         navController.navigate(AppScreen.ContentView.name)
@@ -225,10 +208,10 @@ fun NovelApp(
             }
             composable(route = AppScreen.ContentView.name) {
                 novelAppState.changeSelectedScreen(AppScreen.ContentView)
+                novelAppState.selectedNovel ?: return@composable
                 ContentScreen(
                     db,
-                    novelAppState.selectedNovelId,
-                    novelAppState.selectedNovelType,
+                    novelAppState.selectedNovel,
                     novelAppState.selectedPage
                 )
             }

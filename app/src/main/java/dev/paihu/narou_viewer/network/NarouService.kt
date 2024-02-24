@@ -1,5 +1,6 @@
 package dev.paihu.narou_viewer.network
 
+import android.net.Uri
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.squareup.moshi.Moshi
@@ -95,10 +96,12 @@ class NarouSearchPagingSource(val query: String) : PagingSource<Int, Novel>() {
 }
 
 object NarouService : SearchService {
+    override val host = "ncode.syosetu.com"
+    override val type = "narou"
 
     private val fetchService by lazy {
         Retrofit.Builder()
-            .baseUrl("https://ncode.syosetu.com")
+            .baseUrl("https://$host")
             .addConverterFactory(ScalarsConverterFactory.create())
             .build()
             .create(NarouApi::class.java)
@@ -111,11 +114,18 @@ object NarouService : SearchService {
             .create(NarouSearchApi::class.java)
     }
 
+
     override suspend fun search(word: String, st: Int?, limit: Int?): List<Novel> {
         val ret = searchService.searchNovels(word, st, limit = limit)
         return ret.mapNotNull { resultToNovel(it) }
     }
 
+    override fun getNovelId(uri: Uri): String? {
+        return "https://$host/([^/]+)".toRegex().find(uri.toString())?.groupValues?.get(
+            1
+        )
+
+    }
     override suspend fun getNovelInfo(novelId: String): Novel {
         return searchService.fetchNovelInfo(novelId).mapNotNull { resultToNovel(it) }.first()
     }
@@ -170,7 +180,7 @@ object NarouService : SearchService {
             title = result.title!!,
             author = result.writer!!,
             novelId = result.ncode!!.lowercase(),
-            type = "narou",
+            type = type,
             updatedAt = result.novelupdated_at?.toZoneDateTime("yyyy-MM-dd HH:mm:ss"),
         )
     }

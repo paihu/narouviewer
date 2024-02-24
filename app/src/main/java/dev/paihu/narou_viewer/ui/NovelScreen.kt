@@ -65,7 +65,10 @@ fun NovelCard(novel: Novel, click: () -> Unit, modifier: Modifier = Modifier) {
                 .clickable { click() }
         ) {
             Text(text = novel.title, modifier = Modifier.padding(4.dp))
-            Text(text = novel.author, modifier = Modifier.padding(4.dp))
+            Text(
+                text = "${novel.author} ${novel.type}:${novel.novelId}",
+                modifier = Modifier.padding(4.dp)
+            )
         }
     }
 }

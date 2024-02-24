@@ -149,21 +149,16 @@ fun NovelApp(
     var downloadTarget by remember { mutableStateOf<Novel?>(null) }
 
     LaunchedEffect(uri) {
-        if (uri != null) {
-            val service = when (uri.host) {
-                "ncode.syosetu.com" -> NarouService
-                "kakuyomu.jp" -> KakuyomuService
+        uri?.let { uri ->
+            when (uri.host) {
+                NarouService.host -> NarouService
+                KakuyomuService.host -> KakuyomuService
                 else -> null
-            }
-
-            if (service != null) {
-                "https://ncode.syosetu.com/([^/]+)|https://kakuyomu.jp/works/([^/]+)".toRegex()
-                    .find(uri.toString())?.groupValues?.let { group ->
-                        val novelId = group[1].ifEmpty { group[2] }
-                        downloadTarget = service.getNovelInfo(novelId)
+            }?.let { service ->
+                service.getNovelId(uri)?.let {
+                    service.getNovelInfo(it)
                     }
             }
-
         }
     }
     downloadTarget?.let {

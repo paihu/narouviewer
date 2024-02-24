@@ -14,6 +14,7 @@ import dev.paihu.narou_viewer.data.Page
 import dev.paihu.narou_viewer.data.initDb
 import dev.paihu.narou_viewer.network.KakuyomuService
 import dev.paihu.narou_viewer.network.NarouService
+import dev.paihu.narou_viewer.network.SearchService
 import kotlinx.coroutines.delay
 import java.time.Instant
 import java.time.ZoneId
@@ -22,7 +23,7 @@ import java.time.ZonedDateTime
 class Downloader(
     private val ctx: Context, params: WorkerParameters
 ) : CoroutineWorker(ctx, params) {
-    val db = initDb(ctx)
+    val db by lazy { initDb(ctx) }
 
     override suspend fun doWork(): Result {
         val mode = inputData.getString("mode")
@@ -33,13 +34,18 @@ class Downloader(
         }
     }
 
+    private fun getService(type: String): SearchService? {
+        return when (type) {
+            KakuyomuService.type -> KakuyomuService
+            NarouService.type -> NarouService
+            else -> null
+        }
+    }
+
     private suspend fun doNovel(inputData: Data): Result {
         val novelId = inputData.getString("novelId") ?: return Result.failure()
         val type = inputData.getString("type") ?: return Result.failure()
-        val service = when (type) {
-            "kakuyomu" -> KakuyomuService
-            else -> NarouService
-        }
+        val service = getService(type) ?: return Result.failure()
         val novelInfo = service.getNovelInfo(novelId.lowercase())
         val novel = db.novelDao().select(novelInfo.novelId!!, type)?.copy(
             title = novelInfo.title,
@@ -97,6 +103,8 @@ class Downloader(
         val createdAt = inputData.getLong("createdAt", 0)
         val pageNum = inputData.getInt("pageNum", 0)
         if (pageNum == 0) return Result.failure()
+        val service = getService(type) ?: return Result.failure()
+
         val page = db.pageDao().select(novelId, type, pageNum)?.copy(
             title = title,
             pageId = pageId,
@@ -120,10 +128,7 @@ class Downloader(
             db.close()
             return Result.success()
         }
-        val service = when (type) {
-            "kakuyomu" -> KakuyomuService
-            else -> NarouService
-        }
+
         val pageInfo = service.getPage(novelId, pageId)
         db.pageDao().upsert(
             page.copy(

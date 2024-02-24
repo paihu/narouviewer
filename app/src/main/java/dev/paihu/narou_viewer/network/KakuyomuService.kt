@@ -1,5 +1,6 @@
 package dev.paihu.narou_viewer.network
 
+import android.net.Uri
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import dev.paihu.narou_viewer.model.Novel
@@ -72,9 +73,12 @@ class KakuyomuPagingSource(private val query: String) : PagingSource<Int, Novel>
 }
 
 object KakuyomuService : SearchService {
+    override val host = "kakuyomu.jp"
+    override val type = "kakuyomu"
+
     private val fetchService by lazy {
         Retrofit.Builder()
-            .baseUrl("https://kakuyomu.jp/")
+            .baseUrl("https://$host/")
             .addConverterFactory(ScalarsConverterFactory.create())
             .build()
             .create(KakuyomuApi::class.java)
@@ -226,27 +230,18 @@ object KakuyomuService : SearchService {
         val targets = nodes.getJSONObject(queryKey).getJSONArray("nodes")
         for (i in 0 until targets.length()) {
             val targetId = targets.getJSONObject(i).getString("__ref")
-            val target = jsonTree.getJSONObject(targetId)
-            val title = target.getString("title")
-            val createdAt = ZonedDateTime.parse(target.getString("publishedAt"))
-            val updatedAt = ZonedDateTime.parse(target.getString("lastEpisodePublishedAt"))
-            val authorId = target.getJSONObject("author").getString("__ref")
-            val author = jsonTree.getJSONObject(authorId).getString("activityName")
             val novelId = targetId.split(":").last()
-            novels.add(
-                Novel(
-                    title = title,
-                    author = author,
-                    novelId = novelId,
-                    type = "kakuyomu",
-                    updatedAt = updatedAt,
-                    createdAt = createdAt,
-                )
-            )
+            val target = jsonTree.getJSONObject(targetId)
+            novels.add(getNovel(novelId, jsonTree, target))
         }
         return novels
     }
 
+    override fun getNovelId(uri: Uri): String? {
+        return "https://$host/works/([^/]+)".toRegex().find(uri.toString())?.groupValues?.get(
+            1
+        )
+    }
     override suspend fun getNovelInfo(novelId: String): Novel {
         val ret = Jsoup.parse(fetchService.fetchNovelPagesInfo(novelId))
         val nextJsonRoot = ret.select("script#__NEXT_DATA__")[0].data()
@@ -257,20 +252,24 @@ object KakuyomuService : SearchService {
             .getJSONObject("__APOLLO_STATE__")
 
         val novelRoot = jsonTree.getJSONObject("Work:$novelId")
-        val title = novelRoot.getString("title")
+        return getNovel(novelId, jsonTree, novelRoot)
+    }
+
+    private fun getNovel(novelId: String, root: JSONObject, node: JSONObject): Novel {
+        val title = node.getString("title")
 
         val createdAt = ZonedDateTime.parse(
-            novelRoot.getString(
+            node.getString(
                 "publishedAt"
             )
         )
         val updatedAt = ZonedDateTime.parse(
-            novelRoot.getString(
+            node.getString(
                 "lastEpisodePublishedAt"
             )
         )
-        val authorId = novelRoot.getJSONObject("author").getString("__ref")
-        val authorObj = jsonTree.getJSONObject(authorId)
+        val authorId = node.getJSONObject("author").getString("__ref")
+        val authorObj = root.getJSONObject(authorId)
         val author = authorObj.getString(
             "activityName"
         )
@@ -279,7 +278,7 @@ object KakuyomuService : SearchService {
             title = title,
             author = author,
             novelId = novelId,
-            type = "kakuyomu",
+            type = type,
             createdAt = createdAt,
             updatedAt = updatedAt
         )
@@ -340,6 +339,5 @@ object KakuyomuService : SearchService {
             }
         }
         return pageInfo
-
     }
 }

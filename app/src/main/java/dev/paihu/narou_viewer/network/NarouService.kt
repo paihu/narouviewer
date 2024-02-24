@@ -170,7 +170,7 @@ object NarouService : SearchService {
             title = result.title!!,
             author = result.writer!!,
             novelId = result.ncode!!.lowercase(),
-            type = "Narou",
+            type = "narou",
             updatedAt = result.novelupdated_at?.toZoneDateTime("yyyy-MM-dd HH:mm:ss"),
         )
     }

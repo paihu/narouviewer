@@ -142,7 +142,7 @@ class Downloader(
         )
         db.close()
         Log.i("downloader-page", "finish ${page.novelId}/${page.num} ${page.title}")
-        delay(1000)
+        delay(300)
         return Result.success()
     }
 }

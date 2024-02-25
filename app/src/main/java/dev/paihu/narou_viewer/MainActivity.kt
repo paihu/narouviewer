@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        val uri = Uri.parse(intent?.clipData?.getItemAt(0)?.text.toString())
+        val uri = Uri.parse(intent?.extras?.getString("android.intent.extra.TEXT") ?: "")
         setResult(Activity.RESULT_OK)
 
         setContent {

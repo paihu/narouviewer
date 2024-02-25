@@ -242,6 +242,7 @@ object KakuyomuService : SearchService {
             1
         )
     }
+
     override suspend fun getNovelInfo(novelId: String): Novel {
         val ret = Jsoup.parse(fetchService.fetchNovelPagesInfo(novelId))
         val nextJsonRoot = ret.select("script#__NEXT_DATA__")[0].data()

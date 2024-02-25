@@ -1,6 +1,7 @@
 package dev.paihu.narou_viewer.ui
 
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -39,7 +40,10 @@ import dev.paihu.narou_viewer.network.KakuyomuPagingSource
 import dev.paihu.narou_viewer.network.NarouSearchPagingSource
 
 @Composable
-fun SearchScreen() {
+fun SearchScreen(onBack: () -> Unit) {
+    BackHandler {
+        onBack()
+    }
     Search()
 }
 

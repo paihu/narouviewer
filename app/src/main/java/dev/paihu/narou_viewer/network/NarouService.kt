@@ -127,6 +127,7 @@ object NarouService : SearchService {
         )
 
     }
+
     override suspend fun getNovelInfo(novelId: String): Novel {
         return searchService.fetchNovelInfo(novelId).mapNotNull { resultToNovel(it) }.first()
     }

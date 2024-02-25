@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -24,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.datastore.core.DataStore
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -31,10 +31,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
-import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import dev.paihu.narou_viewer.data.AppDatabase
 import dev.paihu.narou_viewer.data.Novel
+import dev.paihu.narou_viewer.datastore.AppState
 import dev.paihu.narou_viewer.network.KakuyomuService
 import dev.paihu.narou_viewer.network.NarouService
 import dev.paihu.narou_viewer.ui.ContentScreen
@@ -42,7 +42,8 @@ import dev.paihu.narou_viewer.ui.DownloadDialog
 import dev.paihu.narou_viewer.ui.NovelScreen
 import dev.paihu.narou_viewer.ui.PageScreen
 import dev.paihu.narou_viewer.ui.SearchScreen
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 
 enum class AppScreen {
     NovelList,
@@ -56,8 +57,6 @@ enum class AppScreen {
 @Composable
 fun AppBar(
     currentScreen: AppScreen,
-    canNavigateBack: Boolean,
-    navigateUp: () -> Unit,
     search: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -77,14 +76,6 @@ fun AppBar(
                             contentDescription = "search"
                         )
                     }
-                    if (canNavigateBack) {
-                        IconButton(onClick = navigateUp) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "modoru"
-                            )
-                        }
-                    }
                 }
             }
         )
@@ -94,10 +85,11 @@ fun AppBar(
 
 data class NovelAppState(
     val selectedScreen: String,
-    val selectedNovel: Novel?,
+    val selectedNovelId: String,
+    val selectedNovelType: String,
     val selectedPage: Int,
     val changeSelectedScreen: (screen: AppScreen) -> Unit,
-    val changeSelectedNovel: (selectedNovel: Novel) -> Unit,
+    val changeSelectedNovel: (novelId: String, novelType: String) -> Unit,
     val changeSelectedPage: (
         id: Int
     ) -> Unit
@@ -105,20 +97,29 @@ data class NovelAppState(
 
 
 @Composable
-fun rememberNovelAppState(): NovelAppState {
-    var selectedNovel by rememberSaveable { mutableStateOf<Novel?>(null) }
-
-    var selectedPage by rememberSaveable { mutableIntStateOf(0) }
-    var selectedScreen by rememberSaveable {
-        mutableStateOf(AppScreen.NovelList.name)
+fun rememberNovelAppState(
+    novelId: String = "",
+    novelType: String = "",
+    page: Int = 0,
+    screen: String = AppScreen.NovelList.name
+): NovelAppState {
+    var selectedNovelId by rememberSaveable { mutableStateOf(novelId) }
+    var selectedNovelType by rememberSaveable {
+        mutableStateOf(novelType)
     }
-    return remember(selectedScreen, selectedNovel, selectedPage) {
+
+    var selectedPage by rememberSaveable { mutableIntStateOf(page) }
+    var selectedScreen by rememberSaveable {
+        mutableStateOf(screen)
+    }
+    return remember(selectedScreen, selectedNovelId, selectedNovelType, selectedPage) {
         NovelAppState(
             selectedScreen,
-            selectedNovel,
+            selectedNovelId,
+            selectedNovelType,
             selectedPage,
             { selectedScreen = it.name },
-            { selectedNovel = it },
+            { novelId, novelType -> selectedNovelId = novelId; selectedNovelType = novelType },
             { selectedPage = it },
         )
     }
@@ -129,10 +130,20 @@ const val ITEMS_PER_PAGE = 30
 @Composable
 fun NovelApp(
     db: AppDatabase,
+    datastore: DataStore<AppState>,
     uri: Uri? = null,
     navController: NavHostController = rememberNavController(),
 ) {
-    val novelAppState = rememberNovelAppState()
+    val datastoreData = remember {
+        runBlocking { datastore.data.first() }
+    }
+
+    val novelAppState = rememberNovelAppState(
+        datastoreData.selectedNovelId,
+        datastoreData.selectedNovelType,
+        datastoreData.selectedPage,
+        datastoreData.selectedScreen.ifEmpty { AppScreen.NovelList.name }
+    )
     // Get current back stack entry
     val backStackEntry by navController.currentBackStackEntryAsState()
     // Get the name of the current screen
@@ -150,7 +161,7 @@ fun NovelApp(
             }?.let { service ->
                 service.getNovelId(uri)?.let {
                     downloadTarget = service.getNovelInfo(it)
-                    }
+                }
             }
         }
     }
@@ -164,8 +175,6 @@ fun NovelApp(
         topBar = {
             AppBar(
                 currentScreen = currentScreen,
-                canNavigateBack = navController.previousBackStackEntry != null,
-                navigateUp = { navController.navigateUp() },
                 search = { navController.navigate(AppScreen.SearchView.name) }
             )
         }
@@ -173,7 +182,7 @@ fun NovelApp(
 
         NavHost(
             navController = navController,
-            startDestination = AppScreen.NovelList.name,
+            startDestination = novelAppState.selectedScreen,
             modifier = Modifier
                 .fillMaxSize()
                 //.verticalScroll(rememberScrollState())
@@ -181,7 +190,14 @@ fun NovelApp(
         ) {
             composable(route = AppScreen.NovelList.name) {
                 novelAppState.changeSelectedScreen(AppScreen.NovelList)
-                val novels: Flow<PagingData<dev.paihu.narou_viewer.data.Novel>> = remember {
+                LaunchedEffect(novelAppState.selectedScreen) {
+                    datastore.updateData { appState ->
+                        appState.toBuilder()
+                            .setSelectedScreen(AppScreen.NovelList.name)
+                            .build()
+                    }
+                }
+                val novels = remember {
                     Pager(
                         config = PagingConfig(
                             pageSize = ITEMS_PER_PAGE,
@@ -191,16 +207,26 @@ fun NovelApp(
                     ).flow
                 }
                 NovelScreen(novels.collectAsLazyPagingItems(), click = { novel ->
-                    novelAppState.changeSelectedNovel(novel)
+                    novelAppState.changeSelectedNovel(novel.novelId, novel.type)
                     navController.navigate(AppScreen.PageList.name)
                 })
             }
             composable(route = AppScreen.PageList.name) {
                 novelAppState.changeSelectedScreen(AppScreen.PageList)
-                novelAppState.selectedNovel ?: return@composable
+                LaunchedEffect(novelAppState.selectedScreen) {
+                    datastore.updateData { appState ->
+                        appState.toBuilder()
+                            .setSelectedScreen(AppScreen.PageList.name)
+                            .setSelectedNovelId(novelAppState.selectedNovelId)
+                            .setSelectedNovelType(novelAppState.selectedNovelType)
+                            .build()
+                    }
+                }
+
                 PageScreen(
                     db,
-                    novelAppState.selectedNovel,
+                    novelAppState.selectedNovelId, novelAppState.selectedNovelType,
+                    onBack = { navController.navigate(AppScreen.NovelList.name) },
                     click = { num ->
                         novelAppState.changeSelectedPage(num - 1)
                         navController.navigate(AppScreen.ContentView.name)
@@ -208,15 +234,23 @@ fun NovelApp(
             }
             composable(route = AppScreen.ContentView.name) {
                 novelAppState.changeSelectedScreen(AppScreen.ContentView)
-                novelAppState.selectedNovel ?: return@composable
+                LaunchedEffect(novelAppState.selectedScreen) {
+                    datastore.updateData { appState ->
+                        appState.toBuilder()
+                            .setSelectedScreen(AppScreen.ContentView.name)
+                            .setSelectedPage(novelAppState.selectedPage)
+                            .build()
+                    }
+                }
                 ContentScreen(
                     db,
-                    novelAppState.selectedNovel,
-                    novelAppState.selectedPage
+                    novelAppState.selectedNovelId, novelAppState.selectedNovelType,
+                    novelAppState.selectedPage,
+                    onBack = { navController.navigate(AppScreen.PageList.name) },
                 )
             }
             composable(route = AppScreen.SearchView.name) {
-                SearchScreen()
+                SearchScreen(onBack = { navController.navigateUp() })
             }
         }
     }

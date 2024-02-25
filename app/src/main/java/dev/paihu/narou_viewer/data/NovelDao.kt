@@ -24,9 +24,11 @@ interface NovelDao {
     @TypeConverters(SortTargetConverter::class)
     fun getPagingSource(order: SortTarget = SortTarget.CreatedAt): PagingSource<Int, Novel>
 
-
     @Query("select  * from novels where novel_id = :novelId and type = :type limit 1")
     fun select(novelId: String, type: String): Novel?
+
+    @Query("select  * from novels where novel_id = :novelId and type = :type limit 1")
+    fun selectFlow(novelId: String, type: String): Flow<Novel?>
 
     @Upsert
     suspend fun upsert(vararg novels: Novel)

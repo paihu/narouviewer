@@ -10,6 +10,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import dev.paihu.narou_viewer.data.initDb
+import dev.paihu.narou_viewer.datastore.appStateDataStore
 import dev.paihu.narou_viewer.ui.theme.NarouviewerTheme
 
 class MainActivity : ComponentActivity() {
@@ -31,7 +32,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxWidth(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    NovelApp(db, uri)
+                    NovelApp(db, applicationContext.appStateDataStore, uri)
                 }
             }
         }

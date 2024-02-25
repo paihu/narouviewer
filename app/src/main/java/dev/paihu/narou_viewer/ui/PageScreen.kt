@@ -1,6 +1,7 @@
 package dev.paihu.narou_viewer.ui
 
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
@@ -23,7 +24,6 @@ import androidx.compose.ui.unit.dp
 import dev.paihu.narou_viewer.R
 import dev.paihu.narou_viewer.data.AppDatabase
 import dev.paihu.narou_viewer.data.Datasource
-import dev.paihu.narou_viewer.data.Novel
 import dev.paihu.narou_viewer.data.Page
 import dev.paihu.narou_viewer.ui.theme.NarouviewerTheme
 import kotlinx.coroutines.CoroutineScope
@@ -34,21 +34,33 @@ import java.time.ZonedDateTime
 @Composable
 fun PageScreen(
     db: AppDatabase,
-    novel: Novel,
+    novelId: String,
+    novelType: String,
+    onBack: () -> Unit,
     click: (num: Int) -> Unit
 ) {
-    val pageFlow = remember(key1 = novel) {
-        db.pageDao().getAllFlow(novel.novelId, novel.type)
+    BackHandler {
+        onBack()
     }
+    val novel by remember {
+        db.novelDao()
+            .selectFlow(novelId, novelType)
+    }.collectAsState(initial = null)
 
+    val pageFlow = remember(key1 = novelId, key2 = novelType) {
+        db.pageDao().getAllFlow(novelId, novelType)
+    }
     val pages by pageFlow.collectAsState(initial = emptyList())
+
     val longClick: (id: Int) -> Unit = { id ->
         val page = pages[id]
         if (page.readAt != null) CoroutineScope(Dispatchers.IO).launch {
             db.pageDao().upsert(page.copy(readAt = null))
         }
     }
-    Pages(pages, novel.lastReadPage ?: 0, longClick = longClick, click = click)
+
+    novel ?: return
+    Pages(pages, novel?.lastReadPage ?: 0, longClick = longClick, click = click)
 }
 
 @Composable
@@ -72,7 +84,6 @@ fun Pages(
     }
     LaunchedEffect(Unit) {
         state.scrollToItem(maxOf(0, initialPageNum - 5))
-
     }
 }
 

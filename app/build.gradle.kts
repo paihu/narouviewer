@@ -102,6 +102,7 @@ dependencies {
     implementation(libs.androidx.room.paging)
     implementation(libs.androidx.datastore.core)
     implementation(libs.protobuf.javalite)
+    implementation(libs.androidx.datastore)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
     testImplementation(libs.androidx.navigation.testing)

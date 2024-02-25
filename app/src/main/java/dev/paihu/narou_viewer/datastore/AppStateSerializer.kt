@@ -1,12 +1,15 @@
 package dev.paihu.narou_viewer.datastore
 
+import android.content.Context
 import androidx.datastore.core.CorruptionException
+import androidx.datastore.core.DataStore
 import androidx.datastore.core.Serializer
+import androidx.datastore.dataStore
 import com.google.protobuf.InvalidProtocolBufferException
 import java.io.InputStream
 import java.io.OutputStream
 
-class AppStateSerializer : Serializer<AppState> {
+object AppStateSerializer : Serializer<AppState> {
     override val defaultValue = AppState.getDefaultInstance()
 
     override suspend fun readFrom(input: InputStream): AppState =
@@ -22,3 +25,8 @@ class AppStateSerializer : Serializer<AppState> {
         t.writeTo(output)
     }
 }
+
+val Context.appStateDataStore: DataStore<AppState> by dataStore(
+    fileName = "app_state.pb",
+    serializer = AppStateSerializer
+)

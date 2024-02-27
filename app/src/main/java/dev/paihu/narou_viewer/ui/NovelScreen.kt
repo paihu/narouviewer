@@ -2,13 +2,25 @@ package dev.paihu.narou_viewer.ui
 
 import android.util.Log
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -25,9 +37,14 @@ import kotlinx.coroutines.flow.flowOf
 import java.time.ZonedDateTime
 
 @Composable
-fun NovelScreen(novels: LazyPagingItems<Novel>, click: (novel: Novel) -> Unit) {
+fun NovelScreen(
+    novels: LazyPagingItems<Novel>,
+    click: (novel: Novel) -> Unit,
+    download: (novel: Novel) -> Unit,
+    delete: (novel: Novel) -> Unit
+) {
     Novels(
-        novels, click = click
+        novels, click = click, download = download, delete = delete
     )
 }
 
@@ -35,12 +52,18 @@ fun NovelScreen(novels: LazyPagingItems<Novel>, click: (novel: Novel) -> Unit) {
 fun Novels(
     novels: LazyPagingItems<Novel>,
     click: (novel: Novel) -> Unit,
+    download: (novel: Novel) -> Unit,
+    delete: (novel: Novel) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn {
         items(novels.itemCount, novels.itemKey { "${it.type}-${it.novelId}" }) { index ->
             val novel = novels[index] ?: return@items
-            NovelCard(novel, click = { click(novel) })
+            NovelCard(
+                novel,
+                click = { click(novel) },
+                download = { download(novel) },
+                delete = { delete(novel) })
         }
     }
 }
@@ -51,31 +74,70 @@ fun NovelsPreview() {
     NarouviewerTheme {
         Novels(
             flowOf(PagingData.from(Datasource.loadNovels())).collectAsLazyPagingItems(),
-            { novel -> Log.w("novels", "${novel.novelId} ${novel.type}") })
+            { novel -> Log.w("novels", "click ${novel.novelId} ${novel.type}") },
+            { novel -> Log.w("novels", "download ${novel.novelId} ${novel.type}") },
+            { novel -> Log.w("novels", "delete ${novel.novelId} ${novel.type}") },
+        )
     }
 }
 
 @Composable
-fun NovelCard(novel: Novel, click: () -> Unit, modifier: Modifier = Modifier) {
+fun NovelCard(
+    novel: Novel,
+    click: () -> Unit,
+    download: () -> Unit,
+    delete: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
     Card(modifier = modifier) {
-        Column(
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Column(
             modifier = Modifier
-                .fillMaxWidth()
                 .padding(dimensionResource(id = R.dimen.padding_small))
+                .weight(1f)
                 .clickable { click() }
-        ) {
-            Text(text = novel.title, modifier = Modifier.padding(4.dp))
-            Text(
-                text = "${novel.author} ${novel.type}:${novel.novelId}",
-                modifier = Modifier.padding(4.dp)
-            )
+            ) {
+                Text(text = novel.title, modifier = Modifier.padding(4.dp))
+                Text(
+                    text = "${novel.author} ${novel.type}:${novel.novelId}",
+                    modifier = Modifier.padding(4.dp)
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .padding(end = dimensionResource(id = R.dimen.padding_medium))
+                    .weight(0.1f)
+            ) {
+                IconButton(onClick = { expanded = true }) {
+                    Icon(Icons.Filled.Menu, contentDescription = "Localized description")
+                }
+                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                    NavigationDrawerItem(
+                        onClick = {
+                            expanded = false
+                            delete()
+                        },
+                        label = { Text("削除") },
+                        selected = false,
+                    )
+                    NavigationDrawerItem(
+                        onClick = {
+                            expanded = false
+                            download()
+                        },
+                        label = { Text("更新") },
+                        selected = false,
+                    )
+                }
+            }
         }
     }
 }
 
 @Composable
 @Preview
-private fun NovelCardPreview() {
+fun NovelCardPreview() {
     NarouviewerTheme {
         NovelCard(
             Novel(
@@ -85,6 +147,10 @@ private fun NovelCardPreview() {
                 type = "narou",
                 createdAt = ZonedDateTime.now(),
                 updatedAt = ZonedDateTime.now(),
-            ), { Log.w("novel", "") })
+            ),
+            { Log.w("novel", "click") },
+            { Log.w("novel", "download") },
+            { Log.w("novel", "delete") },
+        )
     }
 }

@@ -42,7 +42,10 @@ import dev.paihu.narou_viewer.ui.DownloadDialog
 import dev.paihu.narou_viewer.ui.NovelScreen
 import dev.paihu.narou_viewer.ui.PageScreen
 import dev.paihu.narou_viewer.ui.SearchScreen
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 enum class AppScreen {
@@ -209,6 +212,12 @@ fun NovelApp(
                 NovelScreen(novels.collectAsLazyPagingItems(), click = { novel ->
                     novelAppState.changeSelectedNovel(novel.novelId, novel.type)
                     navController.navigate(AppScreen.PageList.name)
+                }, download = { novel ->
+                    downloadTarget = novel
+                }, delete = { novel ->
+                    CoroutineScope(Dispatchers.IO).launch {
+                        db.novelDao().delete(novel)
+                    }
                 })
             }
             composable(route = AppScreen.PageList.name) {

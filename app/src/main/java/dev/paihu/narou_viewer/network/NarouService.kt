@@ -5,6 +5,7 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.squareup.moshi.Moshi
 import dev.paihu.narou_viewer.data.Novel
+import okhttp3.OkHttpClient
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import retrofit2.Retrofit
@@ -101,9 +102,18 @@ object NarouService : SearchService {
     override val type = "narou"
 
     private val fetchService by lazy {
+        val client = OkHttpClient.Builder()
+            .addInterceptor { chain ->
+                val request = chain.request().newBuilder()
+                    .addHeader("User-Agent", "Mozilla/5.0 (Linux; Android 14; Pixel 6)")
+                    .build()
+                chain.proceed(request)
+            }
+            .build()
         Retrofit.Builder()
             .baseUrl("https://$host")
             .addConverterFactory(ScalarsConverterFactory.create())
+            .client(client)
             .build()
             .create(NarouApi::class.java)
     }

@@ -19,8 +19,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import dev.paihu.narou_viewer.R
 import dev.paihu.narou_viewer.data.AppDatabase
 import dev.paihu.narou_viewer.data.Datasource
@@ -30,6 +32,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun PageScreen(
@@ -117,7 +120,7 @@ fun PageCard(
                     onLongClick = longClick
                 ) { click() }
         ) {
-            Row {
+            Row(modifier = Modifier.fillMaxWidth()) {
                 if (page.readAt != null) {
                     if (page.readAt < page.downloadedAt) {
                         Text("(新)")
@@ -131,7 +134,14 @@ fun PageCard(
                     text = "${page.num}/${totalPage} ${page.title}",
                     modifier = Modifier.padding(4.dp)
                 )
+
             }
+            Text(
+                text = page.updatedAt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                modifier = Modifier.fillMaxWidth(),
+                fontSize = 10.sp,
+                textAlign = TextAlign.Right
+            )
         }
     }
 }

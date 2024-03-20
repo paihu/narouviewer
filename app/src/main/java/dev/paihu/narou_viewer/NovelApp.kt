@@ -72,15 +72,14 @@ fun AppBar(
             modifier = modifier,
             navigationIcon = {
                 Row {
-
-                    IconButton(onClick = search) {
+                    IconButton(onClick = { if (currentScreen != AppScreen.SearchView) search() }) {
                         Icon(
                             imageVector = Icons.Filled.Search,
                             contentDescription = "search"
                         )
                     }
                 }
-            }
+            },
         )
     }
 }

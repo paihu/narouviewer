@@ -137,7 +137,7 @@ fun PageCard(
 
             }
             Text(
-                text = page.updatedAt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                text = page.updatedAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")),
                 modifier = Modifier.fillMaxWidth(),
                 fontSize = 10.sp,
                 textAlign = TextAlign.Right

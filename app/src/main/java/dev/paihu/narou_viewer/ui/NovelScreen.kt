@@ -23,8 +23,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -35,6 +37,7 @@ import dev.paihu.narou_viewer.data.Novel
 import dev.paihu.narou_viewer.ui.theme.NarouviewerTheme
 import kotlinx.coroutines.flow.flowOf
 import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun NovelScreen(
@@ -101,7 +104,15 @@ fun NovelCard(
                 Text(text = novel.title, modifier = Modifier.padding(4.dp))
                 Text(
                     text = "${novel.author} ${novel.type}:${novel.novelId}",
-                    modifier = Modifier.padding(4.dp)
+                )
+                Text(
+                    text =
+                    novel.updatedAt.format(
+                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                    fontSize = 10.sp,
+                    textAlign = TextAlign.Right
                 )
             }
             Box(

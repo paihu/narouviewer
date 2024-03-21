@@ -16,7 +16,7 @@ import dev.paihu.narou_viewer.ui.theme.NarouviewerTheme
 class MainActivity : ComponentActivity() {
     private val db by lazy { initDb(applicationContext) }
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
     }

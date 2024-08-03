@@ -3,6 +3,8 @@ package dev.paihu.narou_viewer.network
 import android.net.Uri
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dev.paihu.narou_viewer.data.Novel
 import okhttp3.OkHttpClient
 import org.jsoup.Jsoup
@@ -19,7 +21,6 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-
 data class NarouSearchResult(
     val allcount: Int?,
     val title: String?,
@@ -28,7 +29,6 @@ data class NarouSearchResult(
     val novelupdated_at: String?,
     val general_firstup: String?,
 )
-
 data class PageInfo(
     val novelId: String,
     val pageId: String,
@@ -117,9 +117,22 @@ object NarouService : SearchService {
             .create(NarouApi::class.java)
     }
     private val searchService by lazy {
+        val client = OkHttpClient.Builder()
+            .addInterceptor { chain ->
+                val request = chain.request().newBuilder()
+                    .addHeader("User-Agent", "Mozilla/5.0 (Linux; Android 14; Pixel 6)")
+                    .build()
+                chain.proceed(request)
+            }
+            .build()
         Retrofit.Builder()
             .baseUrl("https://api.syosetu.com")
-            .addConverterFactory(MoshiConverterFactory.create())
+            .addConverterFactory(
+                MoshiConverterFactory.create(
+                    Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
+                )
+            )
+            .client(client)
             .build()
             .create(NarouSearchApi::class.java)
     }

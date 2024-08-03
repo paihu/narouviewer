@@ -62,7 +62,7 @@ android {
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:4.26.0-RC2"
+        artifact = "com.google.protobuf:protoc:4.27.3"
     }
 
     // Generates the java Protobuf-lite code for the Protobufs in this project. See
@@ -96,8 +96,10 @@ dependencies {
     implementation(libs.jsoup)
     implementation(libs.retrofit)
     implementation(libs.converter.scalars)
-    implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.converter.moshi)
+    implementation(libs.moshi)
+    implementation(libs.moshi.kotlin)
+    implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.paging)
     implementation(libs.androidx.datastore.core)

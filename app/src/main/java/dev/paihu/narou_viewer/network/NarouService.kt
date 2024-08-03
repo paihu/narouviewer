@@ -3,7 +3,6 @@ package dev.paihu.narou_viewer.network
 import android.net.Uri
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.squareup.moshi.Moshi
 import dev.paihu.narou_viewer.data.Novel
 import okhttp3.OkHttpClient
 import org.jsoup.Jsoup
@@ -120,7 +119,7 @@ object NarouService : SearchService {
     private val searchService by lazy {
         Retrofit.Builder()
             .baseUrl("https://api.syosetu.com")
-            .addConverterFactory(MoshiConverterFactory.create(Moshi.Builder().build()))
+            .addConverterFactory(MoshiConverterFactory.create())
             .build()
             .create(NarouSearchApi::class.java)
     }

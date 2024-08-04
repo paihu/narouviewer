@@ -199,7 +199,7 @@ object NarouService : SearchService {
     }
 
     private fun resultToNovel(result: NarouSearchResult): Novel? {
-        if ((result.allcount ?: 0) > 0) return null
+        if (result.allcount !== null) return null
         return Novel(
             title = result.title!!,
             author = result.writer!!,

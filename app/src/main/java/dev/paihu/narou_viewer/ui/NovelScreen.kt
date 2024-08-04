@@ -3,6 +3,7 @@ package dev.paihu.narou_viewer.ui
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,12 +13,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -63,6 +66,7 @@ fun Novels(
     delete: (novel: Novel) -> Unit,
     modifier: Modifier = Modifier
 ) {
+
     LazyColumn {
         items(novels.itemCount, novels.itemKey { "${it.type}-${it.novelId}" }) { index ->
             val novel = novels[index] ?: return@items
@@ -70,9 +74,13 @@ fun Novels(
                 novel,
                 click = { click(novel) },
                 download = { download(novel) },
-                delete = { delete(novel) })
+                delete = {
+                    delete(novel)
+                }
+            )
         }
     }
+
 }
 
 @Composable
@@ -98,6 +106,14 @@ fun NovelCard(
 ) {
     val context = LocalContext.current
     var expanded by remember { mutableStateOf(false) }
+    var openDeleteDialog by remember { mutableStateOf(false) }
+    when {
+        openDeleteDialog -> {
+            DeleteDialog(novel = novel, delete = delete) {
+                openDeleteDialog = false
+            }
+        }
+    }
     Card(modifier = modifier) {
         Row(modifier = Modifier.fillMaxWidth()) {
             Column(
@@ -132,7 +148,7 @@ fun NovelCard(
                     NavigationDrawerItem(
                         onClick = {
                             expanded = false
-                            delete()
+                            openDeleteDialog = true
                         },
                         label = { Text("削除") },
                         selected = false,
@@ -182,4 +198,38 @@ fun NovelCardPreview() {
             { Log.w("novel", "delete") },
         )
     }
+}
+
+@Composable
+fun DeleteDialog(novel: Novel, delete: () -> Unit, close: () -> Unit) {
+    val context = LocalContext.current
+    AlertDialog(onDismissRequest = close,
+        text = {
+            Card {
+                Text(novel.title)
+                Text(novel.author)
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    delete()
+                    Toast.makeText(context, "削除しました", Toast.LENGTH_LONG).show()
+                    close()
+                }
+            ) {
+                Text("delete")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = {
+                    close()
+                }
+            ) {
+                Text("Dismiss")
+            }
+        }
+    )
+
 }

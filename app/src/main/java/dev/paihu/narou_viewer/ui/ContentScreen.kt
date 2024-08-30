@@ -9,6 +9,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
@@ -80,18 +81,20 @@ fun Contents(state: PagerState, pages: List<Page>, count: Int, read: (page: Page
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(dimensionResource(id = R.dimen.padding_small))
-            ) {
-                Text("(${page.num}/${count}) ${page.title}")
-                Text(
-                    page.content ?: "not downloaded",
-                    modifier = Modifier.verticalScroll(scrollState)
-                )
-            }
+            SelectionContainer {
 
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(dimensionResource(id = R.dimen.padding_small))
+                ) {
+                    Text("(${page.num}/${count}) ${page.title}")
+                    Text(
+                        page.content ?: "not downloaded",
+                        modifier = Modifier.verticalScroll(scrollState)
+                    )
+                }
+            }
         }
 
     }

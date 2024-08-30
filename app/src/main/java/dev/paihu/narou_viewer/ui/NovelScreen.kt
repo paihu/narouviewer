@@ -117,10 +117,10 @@ fun NovelCard(
     Card(modifier = modifier) {
         Row(modifier = Modifier.fillMaxWidth()) {
             Column(
-            modifier = Modifier
-                .padding(dimensionResource(id = R.dimen.padding_small))
-                .weight(1f)
-                .clickable { click() }
+                modifier = Modifier
+                    .padding(dimensionResource(id = R.dimen.padding_small))
+                    .weight(1f)
+                    .clickable { click() }
             ) {
                 Text(text = novel.title, modifier = Modifier.padding(4.dp))
                 Text(

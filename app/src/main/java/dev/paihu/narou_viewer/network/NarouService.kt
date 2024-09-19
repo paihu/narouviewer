@@ -157,12 +157,14 @@ object NarouService : SearchService {
     override suspend fun getPagesInfo(novelId: String): List<PageInfo> {
         val ret = Jsoup.parse(fetchService.fetchNovelPagesInfo(novelId))
         val info =
-            ret.select("dl.novel_sublist2").map { elementToPageInfo(it, novelId) }.toMutableList()
+            ret.select("div.p-eplist__sublist").map { elementToPageInfo(it, novelId) }
+                .toMutableList()
         return try {
-            for (i in 2..ret.select("a.novelview_pager-last")[0].attr("href")
+            for (i in 2..ret.select("a.c-pager__item--last")[0].attr("href")
                 .split("=")[1].toInt()) {
                 val res = Jsoup.parse(fetchService.fetchNovelPagesInfo(novelId, i))
-                val addInfo = res.select("dl.novel_sublist2").map { elementToPageInfo(it, novelId) }
+                val addInfo =
+                    res.select("div.p-eplist__sublist").map { elementToPageInfo(it, novelId) }
                 info.addAll(addInfo)
             }
             info.toList()
@@ -173,13 +175,13 @@ object NarouService : SearchService {
 
     override suspend fun getPage(novelId: String, pageId: String): String {
         val ret = Jsoup.parse(fetchService.fetchPageData(novelId, pageId))
-        return ret.select("#novel_honbun > p").joinToString("\n") { it.text() }
+        return ret.select(".p-novel__text > p").joinToString("\n") { it.text() }
     }
 
     private fun elementToPageInfo(it: Element, novelId: String): PageInfo {
-        val title = it.select(".subtitle").text()
-        val pageId = it.select(".subtitle > a").attr("href").split("/")[2]
-        val createdAt = it.select(".long_update")[0].ownText().replace("\"", "").trim()
+        val title = it.select("a").text()
+        val pageId = it.select("a").attr("href").split("/")[2]
+        val createdAt = it.select(".p-eplist__update")[0].ownText().replace("\"", "").trim()
         val info = PageInfo(
             title = title,
             pageId = pageId,
@@ -190,7 +192,7 @@ object NarouService : SearchService {
         )
         return try {
             val updatedAt =
-                it.select(".long_update > span")[0].attr("title").replace("改稿", "").trim()
+                it.select(".p-eplist_update > span")[0].attr("title").replace("改稿", "").trim()
                     .toZoneDateTime()
             info.copy(updatedAt = updatedAt!!)
         } catch (e: IndexOutOfBoundsException) {

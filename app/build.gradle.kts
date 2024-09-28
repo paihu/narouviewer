@@ -9,12 +9,12 @@ plugins {
 
 android {
     namespace = "dev.paihu.narou_viewer"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "dev.paihu.narou_viewer"
-        minSdk = 29
-        targetSdk = 34
+        minSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -62,7 +62,7 @@ android {
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:4.27.3"
+        artifact = "com.google.protobuf:protoc:4.28.2"
     }
 
     // Generates the java Protobuf-lite code for the Protobufs in this project. See

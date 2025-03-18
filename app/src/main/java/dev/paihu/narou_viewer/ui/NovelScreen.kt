@@ -166,6 +166,7 @@ fun NovelCard(
                             expanded = false
                             val uri = when (novel.type) {
                                 "narou" -> "https://ncode.syosetu.com/" + novel.novelId
+                                "narou18" -> "https://novel18.syosetu.com/" + novel.novelId
                                 else -> "https://kakuyomu.jp/works/" + novel.novelId
                             }
                             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri))

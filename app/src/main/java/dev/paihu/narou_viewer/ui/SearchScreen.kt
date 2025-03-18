@@ -38,7 +38,7 @@ import dev.paihu.narou_viewer.backgroud.Downloader
 import dev.paihu.narou_viewer.data.Novel
 import dev.paihu.narou_viewer.network.KakuyomuPagingSource
 import dev.paihu.narou_viewer.network.NarouSearchPagingSource
-
+import dev.paihu.narou_viewer.network.Narou18SearchPagingSource
 @Composable
 fun SearchScreen(onBack: () -> Unit) {
     BackHandler {
@@ -85,6 +85,10 @@ fun Search() {
                     RadioButton(selected = type == "kakuyomu", onClick = { type = "kakuyomu" })
 
                 }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("なろう18")
+                    RadioButton(selected = type == "narou18", onClick = { type = "narou18" })
+                }
 
             }
 
@@ -110,6 +114,7 @@ fun SearchResult(query: String, type: String, click: (novel: Novel) -> Unit) {
             pagingSourceFactory = {
                 when (type) {
                     "kakuyomu" -> KakuyomuPagingSource(query)
+                    "narou18"->Narou18SearchPagingSource(query)
                     else -> NarouSearchPagingSource(query)
                 }
             }

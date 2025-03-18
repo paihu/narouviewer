@@ -13,7 +13,6 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import retrofit2.http.GET
-import retrofit2.http.Path
 import retrofit2.http.Query
 import java.text.ParseException
 import java.time.LocalDateTime
@@ -21,58 +20,7 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
-data class NarouSearchResult(
-    val allcount: Int?,
-    val title: String?,
-    val writer: String?,
-    val ncode: String?,
-    val novelupdated_at: String?,
-    val general_firstup: String?,
-)
-data class PageInfo(
-    val novelId: String,
-    val pageId: String,
-    val pageNum: Int,
-    val title: String,
-    val createdAt: ZonedDateTime,
-    val updatedAt: ZonedDateTime,
-)
-
-interface NarouSearchApi {
-    @GET("/novelapi/api")
-    suspend fun searchNovels(
-        @Query("word") word: String? = null,
-        @Query("st") st: Int? = null,
-        @Query("out") out: String = "json",
-        @Query("title") title: Int = 1,
-        @Query("of") of: String = "t-n-w-nu-gf",
-        @Query("lim") limit: Int? = null
-    ): Array<NarouSearchResult>
-
-    @GET("/novelapi/api")
-    suspend fun fetchNovelInfo(
-        @Query("ncode") ncode: String? = null,
-        @Query("out") out: String = "json",
-        @Query("of") of: String = "t-n-w-nu-gf"
-    ): Array<NarouSearchResult>
-}
-
-interface NarouApi {
-
-    @GET("/{novelId}/")
-    suspend fun fetchNovelPagesInfo(
-        @Path("novelId") novelId: String,
-        @Query("p") p: Int? = null
-    ): String
-
-    @GET("/{novelId}/{pageId}")
-    suspend fun fetchPageData(
-        @Path("novelId") novelId: String,
-        @Path("pageId") pageId: String,
-    ): String
-}
-
-class NarouSearchPagingSource(val query: String) : PagingSource<Int, Novel>() {
+class Narou18SearchPagingSource(val query: String) : PagingSource<Int, Novel>() {
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Novel> {
         if (query.isEmpty()) return LoadResult.Page(
@@ -82,7 +30,7 @@ class NarouSearchPagingSource(val query: String) : PagingSource<Int, Novel>() {
         )
         val st = params.key ?: 0
         val limit = params.loadSize
-        val ret = NarouService.search(query, st, limit = limit)
+        val ret = Narou18Service.search(query, st, limit = limit)
         val prevKey = st - limit
         return LoadResult.Page(
             data = ret,
@@ -95,35 +43,48 @@ class NarouSearchPagingSource(val query: String) : PagingSource<Int, Novel>() {
         return null
     }
 }
+interface Narou18SearchApi {
+    @GET("/novel18api/api")
+    suspend fun searchNovels(
+        @Query("word") word: String? = null,
+        @Query("st") st: Int? = null,
+        @Query("out") out: String = "json",
+        @Query("title") title: Int = 1,
+        @Query("of") of: String = "t-n-w-nu-gf",
+        @Query("lim") limit: Int? = null
+    ): Array<NarouSearchResult>
 
-interface INarouService: SearchService{
-    val client: OkHttpClient
-    val fetchService: NarouApi
-    val searchService: NarouSearchApi
+    @GET("/novel18api/api")
+    suspend fun fetchNovelInfo(
+        @Query("ncode") ncode: String? = null,
+        @Query("out") out: String = "json",
+        @Query("of") of: String = "t-n-w-nu-gf"
+    ): Array<NarouSearchResult>
 }
-object NarouService : INarouService {
-    override val host = "ncode.syosetu.com"
-    override val type = "narou"
-    override val client by lazy{
+object Narou18Service: SearchService{
+    override val host = "novel18.syosetu.com"
+    override val type = "narou18"
+    private val client by lazy{
         OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val request = chain.request().newBuilder()
                     .addHeader("User-Agent", "Mozilla/5.0 (Linux; Android 14; Pixel 6)")
+                    .addHeader("Cookie", "over18=yes")
                     .build()
                 chain.proceed(request)
             }
             .build()
     }
 
-    override val fetchService by lazy {
+    private val fetchService by lazy {
         Retrofit.Builder()
-            .baseUrl("https://$host")
+            .baseUrl("https://${host}")
             .addConverterFactory(ScalarsConverterFactory.create())
             .client(client)
             .build()
             .create(NarouApi::class.java)
     }
-    override val searchService by lazy {
+    private val searchService by lazy {
         Retrofit.Builder()
             .baseUrl("https://api.syosetu.com")
             .addConverterFactory(
@@ -133,7 +94,7 @@ object NarouService : INarouService {
             )
             .client(client)
             .build()
-            .create(NarouSearchApi::class.java)
+            .create(Narou18SearchApi::class.java)
     }
 
 
@@ -143,7 +104,7 @@ object NarouService : INarouService {
     }
 
     override fun getNovelId(uri: Uri): String? {
-        return "https://$host/([^/]+)".toRegex().find(uri.toString())?.groupValues?.get(
+        return "https://${host}/([^/]+)".toRegex().find(uri.toString())?.groupValues?.get(
             1
         )
 
@@ -227,4 +188,3 @@ object NarouService : INarouService {
         return date
     }
 }
-

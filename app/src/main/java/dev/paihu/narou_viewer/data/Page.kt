@@ -16,7 +16,7 @@ import java.time.ZonedDateTime
         entity = Novel::class
     )],
     primaryKeys = ["novel_type", "novel_id", "page_id"],
-    indices = [Index(value = ["novel_type", "novel_id", "num"], unique = true)]
+    indices = [Index(value = ["novel_type", "novel_id", "num"])]
 )
 @TypeConverters(ZonedDateTimeConverter::class)
 data class Page(

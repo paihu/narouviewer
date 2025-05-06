@@ -62,7 +62,7 @@ android {
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:4.28.2"
+        artifact = "com.google.protobuf:protoc:4.30.2"
     }
 
     // Generates the java Protobuf-lite code for the Protobufs in this project. See

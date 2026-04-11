@@ -293,7 +293,7 @@ object KakuyomuService : SearchService {
             nextJsonRoot
         ).nextValue() as JSONObject).getJSONObject("props").getJSONObject("pageProps")
             .getJSONObject("__APOLLO_STATE__")
-        val rootContents = root.getJSONObject("Work:$novelId").getJSONArray("tableOfContents")
+        val rootContents = root.getJSONObject("Work:$novelId").getJSONArray("tableOfContentsV2")
         return scrapePageInfo(
             novelId,
             root,

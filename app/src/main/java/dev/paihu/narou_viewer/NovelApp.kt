@@ -35,6 +35,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import dev.paihu.narou_viewer.data.AppDatabase
 import dev.paihu.narou_viewer.data.Novel
 import dev.paihu.narou_viewer.datastore.AppState
+import dev.paihu.narou_viewer.network.AlphapolisService
 import dev.paihu.narou_viewer.network.KakuyomuService
 import dev.paihu.narou_viewer.network.NarouService
 import dev.paihu.narou_viewer.ui.ContentScreen
@@ -159,6 +160,7 @@ fun NovelApp(
             when (uri.host) {
                 NarouService.host -> NarouService
                 KakuyomuService.host -> KakuyomuService
+                AlphapolisService.host -> AlphapolisService
                 else -> null
             }?.let { service ->
                 service.getNovelId(uri)?.let {

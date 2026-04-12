@@ -12,6 +12,7 @@ import androidx.work.workDataOf
 import dev.paihu.narou_viewer.data.Novel
 import dev.paihu.narou_viewer.data.Page
 import dev.paihu.narou_viewer.data.initDb
+import dev.paihu.narou_viewer.network.AlphapolisService
 import dev.paihu.narou_viewer.network.KakuyomuService
 import dev.paihu.narou_viewer.network.NarouService
 import dev.paihu.narou_viewer.network.Narou18Service
@@ -40,6 +41,9 @@ class Downloader(
             KakuyomuService.type -> KakuyomuService
             NarouService.type -> NarouService
             Narou18Service.type -> Narou18Service
+            AlphapolisService.type ->
+                AlphapolisService
+
             else -> null
         }
     }

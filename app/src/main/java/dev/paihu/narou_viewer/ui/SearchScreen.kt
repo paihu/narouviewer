@@ -36,6 +36,8 @@ import dev.paihu.narou_viewer.ITEMS_PER_PAGE
 import dev.paihu.narou_viewer.R
 import dev.paihu.narou_viewer.backgroud.Downloader
 import dev.paihu.narou_viewer.data.Novel
+import dev.paihu.narou_viewer.network.AlphapolisPagingSource
+import dev.paihu.narou_viewer.network.AlphapolisService
 import dev.paihu.narou_viewer.network.KakuyomuPagingSource
 import dev.paihu.narou_viewer.network.NarouSearchPagingSource
 import dev.paihu.narou_viewer.network.Narou18SearchPagingSource
@@ -89,7 +91,10 @@ fun Search() {
                     Text("なろう18")
                     RadioButton(selected = type == "narou18", onClick = { type = "narou18" })
                 }
-
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Alphapolis")
+                    RadioButton(selected = type == "alphapolis", onClick = { type = "alphapolis" })
+                }
             }
 
         }
@@ -115,6 +120,7 @@ fun SearchResult(query: String, type: String, click: (novel: Novel) -> Unit) {
                 when (type) {
                     "kakuyomu" -> KakuyomuPagingSource(query)
                     "narou18"->Narou18SearchPagingSource(query)
+                    "alphapolis" -> AlphapolisPagingSource(query)
                     else -> NarouSearchPagingSource(query)
                 }
             }

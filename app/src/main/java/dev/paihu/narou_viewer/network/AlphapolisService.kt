@@ -1,6 +1,7 @@
 package dev.paihu.narou_viewer.network
 
 import android.net.Uri
+import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import dev.paihu.narou_viewer.data.Novel
@@ -47,6 +48,12 @@ class MemoryCookieJar : CookieJar {
             return cookies.filter { cookie ->
                 cookie.expiresAt > now && cookie.matches(url)
             }
+        }
+    }
+
+    fun clear() {
+        synchronized(this) {
+            this.cookies.clear()
         }
     }
 }
@@ -111,11 +118,13 @@ interface AlphapolisApi {
 object AlphapolisService : SearchService {
     override val host = "www.alphapolis.co.jp"
     override val type = "alphapolis"
-    private var _cookieJar: CookieJar? = null
+    var cookieJar =
+        MemoryCookieJar()
+
 
     val client by lazy {
         OkHttpClient.Builder()
-            .cookieJar(MemoryCookieJar())
+            .cookieJar(cookieJar)
             .addInterceptor { chain ->
                 val request = chain.request().newBuilder()
                     .addHeader("User-Agent", "Mozilla/5.0 (Linux; Android 14; Pixel 6)")
@@ -245,6 +254,15 @@ object AlphapolisService : SearchService {
 
     override suspend fun getPage(novelId: String, pageId: String): String {
         val ret = Jsoup.parse(fetchService.fetchPageData(novelId, pageId))
-        return "${ret.select("#novelBody")[0]}".replace("<br>", "")
+        var pageData = "${ret.select("#novelBody")[0]}"
+        while (pageData.length < 300) {
+            this.cookieJar.clear()
+            Log.i(type, "rate limit, sleep 5sec")
+            Thread.sleep(5_000)
+            getNovelInfo(novelId)
+            val ret = Jsoup.parse(fetchService.fetchPageData(novelId, pageId))
+            pageData = "${ret.select("#novelBody")[0]}"
+        }
+        return pageData
     }
 }

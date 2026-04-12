@@ -29,6 +29,7 @@ data class NarouSearchResult(
     val novelupdated_at: String?,
     val general_firstup: String?,
 )
+
 data class PageInfo(
     val novelId: String,
     val pageId: String,
@@ -96,15 +97,16 @@ class NarouSearchPagingSource(val query: String) : PagingSource<Int, Novel>() {
     }
 }
 
-interface INarouService: SearchService{
+interface INarouService : SearchService {
     val client: OkHttpClient
     val fetchService: NarouApi
     val searchService: NarouSearchApi
 }
+
 object NarouService : INarouService {
     override val host = "ncode.syosetu.com"
     override val type = "narou"
-    override val client by lazy{
+    override val client by lazy {
         OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val request = chain.request().newBuilder()

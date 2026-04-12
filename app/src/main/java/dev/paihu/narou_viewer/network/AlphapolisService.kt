@@ -1,6 +1,8 @@
 package dev.paihu.narou_viewer.network
 
 import android.net.Uri
+import androidx.paging.PagingSource
+import androidx.paging.PagingState
 import dev.paihu.narou_viewer.data.Novel
 import okhttp3.Cookie
 import okhttp3.CookieJar
@@ -19,9 +21,6 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import android.util.Log
-import androidx.paging.PagingSource
-import androidx.paging.PagingState
 import java.util.concurrent.CopyOnWriteArrayList
 
 class MemoryCookieJar : CookieJar {
@@ -88,6 +87,7 @@ class AlphapolisPagingSource(private val query: String) : PagingSource<Int, Nove
         return null
     }
 }
+
 interface AlphapolisApi {
     @GET("/novel/{novelId}")
     suspend fun fetchNovelPagesInfo(
@@ -132,6 +132,7 @@ object AlphapolisService : SearchService {
             .build()
             .create(AlphapolisApi::class.java)
     }
+
     override suspend fun search(word: String, st: Int?, limit: Int?): List<Novel> {
         val page = if (st != null && limit != null) (st / limit) + 1 else st
         val ret = Jsoup.parse(fetchService.searchNovels(word, page))
@@ -210,6 +211,7 @@ object AlphapolisService : SearchService {
             ZonedDateTime.now()
         }
     }
+
     override suspend fun getPagesInfo(novelId: String): List<PageInfo> {
         val ret = Jsoup.parse(fetchService.fetchNovelPagesInfo(novelId))
         val rawJson = ret.select("script#app-cover-data")[0].data()

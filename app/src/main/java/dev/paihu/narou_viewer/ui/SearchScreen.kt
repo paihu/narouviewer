@@ -37,10 +37,10 @@ import dev.paihu.narou_viewer.R
 import dev.paihu.narou_viewer.backgroud.Downloader
 import dev.paihu.narou_viewer.data.Novel
 import dev.paihu.narou_viewer.network.AlphapolisPagingSource
-import dev.paihu.narou_viewer.network.AlphapolisService
 import dev.paihu.narou_viewer.network.KakuyomuPagingSource
-import dev.paihu.narou_viewer.network.NarouSearchPagingSource
 import dev.paihu.narou_viewer.network.Narou18SearchPagingSource
+import dev.paihu.narou_viewer.network.NarouSearchPagingSource
+
 @Composable
 fun SearchScreen(onBack: () -> Unit) {
     BackHandler {
@@ -119,7 +119,7 @@ fun SearchResult(query: String, type: String, click: (novel: Novel) -> Unit) {
             pagingSourceFactory = {
                 when (type) {
                     "kakuyomu" -> KakuyomuPagingSource(query)
-                    "narou18"->Narou18SearchPagingSource(query)
+                    "narou18" -> Narou18SearchPagingSource(query)
                     "alphapolis" -> AlphapolisPagingSource(query)
                     else -> NarouSearchPagingSource(query)
                 }
@@ -133,11 +133,12 @@ fun SearchResult(query: String, type: String, click: (novel: Novel) -> Unit) {
     ) {
         items(novels.itemCount) {
             val novel = novels[it] ?: return@items
-            Card(modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = dimensionResource(id = R.dimen.padding_small))
-                .padding(bottom = dimensionResource(id = R.dimen.padding_small))
-                .clickable { click(novel) }
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = dimensionResource(id = R.dimen.padding_small))
+                    .padding(bottom = dimensionResource(id = R.dimen.padding_small))
+                    .clickable { click(novel) }
             ) {
                 Column {
                     Text(novel.title)
@@ -152,7 +153,8 @@ fun SearchResult(query: String, type: String, click: (novel: Novel) -> Unit) {
 @Composable
 fun DownloadDialog(novel: Novel, close: () -> Unit) {
     val context = LocalContext.current
-    AlertDialog(onDismissRequest = close,
+    AlertDialog(
+        onDismissRequest = close,
         text = {
             Card {
                 Text(novel.title)

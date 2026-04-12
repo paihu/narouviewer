@@ -128,9 +128,9 @@ fun NovelCard(
                 )
                 Text(
                     text =
-                    novel.updatedAt.format(
-                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
-                    ),
+                        novel.updatedAt.format(
+                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+                        ),
                     modifier = Modifier.fillMaxWidth(),
                     fontSize = 10.sp,
                     textAlign = TextAlign.Right
@@ -204,7 +204,8 @@ fun NovelCardPreview() {
 @Composable
 fun DeleteDialog(novel: Novel, delete: () -> Unit, close: () -> Unit) {
     val context = LocalContext.current
-    AlertDialog(onDismissRequest = close,
+    AlertDialog(
+        onDismissRequest = close,
         text = {
             Card {
                 Text(novel.title)

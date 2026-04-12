@@ -43,6 +43,7 @@ class Narou18SearchPagingSource(val query: String) : PagingSource<Int, Novel>() 
         return null
     }
 }
+
 interface Narou18SearchApi {
     @GET("/novel18api/api")
     suspend fun searchNovels(
@@ -61,10 +62,11 @@ interface Narou18SearchApi {
         @Query("of") of: String = "t-n-w-nu-gf"
     ): Array<NarouSearchResult>
 }
-object Narou18Service: SearchService{
+
+object Narou18Service : SearchService {
     override val host = "novel18.syosetu.com"
     override val type = "narou18"
-    private val client by lazy{
+    private val client by lazy {
         OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val request = chain.request().newBuilder()

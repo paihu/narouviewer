@@ -14,8 +14,8 @@ import dev.paihu.narou_viewer.data.Page
 import dev.paihu.narou_viewer.data.initDb
 import dev.paihu.narou_viewer.network.AlphapolisService
 import dev.paihu.narou_viewer.network.KakuyomuService
-import dev.paihu.narou_viewer.network.NarouService
 import dev.paihu.narou_viewer.network.Narou18Service
+import dev.paihu.narou_viewer.network.NarouService
 import dev.paihu.narou_viewer.network.SearchService
 import kotlinx.coroutines.delay
 import java.time.Instant

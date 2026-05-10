@@ -2,17 +2,22 @@ name: Android CI
 
 on:
   push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
 
 jobs:
-  build:
-
+  release:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v4
+
+    - name: Get version from tag
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
     - name: set up JDK 21
       uses: actions/setup-java@v4
       with:
@@ -24,3 +29,13 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew build
+
+    - name: Create Release
+      uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3
+      with:
+        tag_name: ${{ steps.get_version.outputs.VERSION }}
+        files: app/build/outputs/apk/release/app-release.apk
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

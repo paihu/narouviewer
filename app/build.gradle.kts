@@ -1,7 +1,6 @@
 
 plugins {
     alias(libs.plugins.androidApplication)
-    alias(libs.plugins.jetbrainsKotlinAndroid)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.googleKSP)
     alias(libs.plugins.protobuf)
@@ -45,13 +44,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
 
     }
-    kotlinOptions {
-        jvmTarget = "17"
-    }
     buildFeatures {
         compose = true
-    }
-    composeOptions {
     }
     packaging {
         resources {

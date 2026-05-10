@@ -1,7 +1,7 @@
 [versions]
 agp = "9.0.1"
 kotlin = "2.2.10"
-ksp = "2.3.2"
+ksp = "2.3.6"
 coreKtx = "1.16.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
@@ -24,7 +24,7 @@ roomKtx = "2.8.4"
 roomPaging = "2.8.4"
 datastoreCore = "1.2.1"
 protobufJavaLite = "4.34.1"
-protobuf = "0.9.5"
+protobuf = "0.10.0"
 datastore = "1.2.1"
 
 [libraries]
@@ -65,7 +65,6 @@ compose-material-icons = { group = "androidx.compose.material", name = "material
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
-jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 googleKSP = {id= "com.google.devtools.ksp", version.ref = "ksp"}
 protobuf = { id = "com.google.protobuf", version.ref = "protobuf" }

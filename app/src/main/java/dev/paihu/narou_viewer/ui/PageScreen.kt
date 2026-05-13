@@ -81,8 +81,9 @@ fun Pages(
             PageCard(
                 page,
                 pages.size,
+                index + 1,
                 { longClick(index) },
-                { click(page.num) })
+                { click(index) })
         }
     }
     LaunchedEffect(Unit) {
@@ -107,6 +108,7 @@ fun PagesPreview() {
 fun PageCard(
     page: Page,
     totalPage: Int,
+    pageIndex: Int,
     longClick: () -> Unit,
     click: () -> Unit,
     modifier: Modifier = Modifier
@@ -131,7 +133,7 @@ fun PageCard(
                     Text("(未)")
                 }
                 Text(
-                    text = "${page.num}/${totalPage} ${page.title}",
+                    text = "${pageIndex}/${totalPage} ${page.title}",
                     modifier = Modifier.padding(4.dp)
                 )
 
@@ -160,6 +162,6 @@ private fun PageCardPreview() {
                 "content",
                 ZonedDateTime.now(),
                 ZonedDateTime.now()
-            ), 10, {}, {})
+            ), 10, 1, {}, {})
     }
 }

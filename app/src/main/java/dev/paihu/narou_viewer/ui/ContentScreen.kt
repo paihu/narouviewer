@@ -88,7 +88,7 @@ fun Contents(state: PagerState, pages: List<Page>, count: Int, read: (page: Page
                         .fillMaxWidth()
                         .padding(dimensionResource(id = R.dimen.padding_small))
                 ) {
-                    Text("(${page.num}/${count}) ${page.title}")
+                    Text("(${index + 1}/${count}) ${page.title}")
                     Text(
                         page.content ?: "not downloaded",
                         modifier = Modifier.verticalScroll(scrollState)

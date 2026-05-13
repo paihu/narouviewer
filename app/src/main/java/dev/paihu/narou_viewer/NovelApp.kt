@@ -251,8 +251,8 @@ fun NovelApp(
                     db,
                     novelAppState.selectedNovelId, novelAppState.selectedNovelType,
                     onBack = { navController.navigate(AppScreen.NovelList.name) },
-                    click = { num ->
-                        novelAppState.changeSelectedPage(num - 1)
+                    click = { index ->
+                        novelAppState.changeSelectedPage(index)
                         navController.navigate(AppScreen.ContentView.name)
                     })
             }

@@ -11,6 +11,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.AlertDialog
@@ -42,6 +45,7 @@ import dev.paihu.narou_viewer.R
 import dev.paihu.narou_viewer.data.Datasource
 import dev.paihu.narou_viewer.data.Novel
 import dev.paihu.narou_viewer.ui.theme.NarouviewerTheme
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -49,38 +53,53 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun NovelScreen(
     novels: LazyPagingItems<Novel>,
-    click: (novel: Novel) -> Unit,
+    click: (novel: Novel, scrollIndex: Int, scrollOffset: Int) -> Unit,
     download: (novel: Novel) -> Unit,
-    delete: (novel: Novel) -> Unit
+    delete: (novel: Novel) -> Unit,
+    initialScrollIndex: Int = 0,
+    initialScrollOffset: Int = 0,
 ) {
     Novels(
-        novels, click = click, download = download, delete = delete
+        novels,
+        click = click,
+        download = download,
+        delete = delete,
+        initialScrollIndex = initialScrollIndex,
+        initialScrollOffset = initialScrollOffset,
     )
 }
 
 @Composable
 fun Novels(
     novels: LazyPagingItems<Novel>,
-    click: (novel: Novel) -> Unit,
+    click: (novel: Novel, scrollIndex: Int, scrollOffset: Int) -> Unit,
     download: (novel: Novel) -> Unit,
     delete: (novel: Novel) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    initialScrollIndex: Int = 0,
+    initialScrollOffset: Int = 0,
 ) {
+    val state = rememberLazyListState()
 
-    LazyColumn {
+    LazyColumn(state = state) {
         items(novels.itemCount, novels.itemKey { "${it.type}-${it.novelId}" }) { index ->
             val novel = novels[index] ?: return@items
             NovelCard(
                 novel,
-                click = { click(novel) },
+                click = { click(novel, state.firstVisibleItemIndex, state.firstVisibleItemScrollOffset) },
                 download = { download(novel) },
-                delete = {
-                    delete(novel)
-                }
+                delete = { delete(novel) }
             )
         }
     }
 
+    LaunchedEffect(initialScrollIndex) {
+        if (initialScrollIndex > 0) {
+            snapshotFlow { novels.itemCount }
+                .first { it > initialScrollIndex }
+            state.scrollToItem(initialScrollIndex, initialScrollOffset)
+        }
+    }
 }
 
 @Composable
@@ -89,7 +108,7 @@ fun NovelsPreview() {
     NarouviewerTheme {
         Novels(
             flowOf(PagingData.from(Datasource.loadNovels())).collectAsLazyPagingItems(),
-            { novel -> Log.w("novels", "click ${novel.novelId} ${novel.type}") },
+            { novel, _, _ -> Log.w("novels", "click ${novel.novelId} ${novel.type}") },
             { novel -> Log.w("novels", "download ${novel.novelId} ${novel.type}") },
             { novel -> Log.w("novels", "delete ${novel.novelId} ${novel.type}") },
         )

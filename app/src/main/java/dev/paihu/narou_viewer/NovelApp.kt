@@ -91,11 +91,12 @@ data class NovelAppState(
     val selectedNovelId: String,
     val selectedNovelType: String,
     val selectedPage: Int,
+    val novelListScrollIndex: Int,
+    val novelListScrollOffset: Int,
     val changeSelectedScreen: (screen: AppScreen) -> Unit,
     val changeSelectedNovel: (novelId: String, novelType: String) -> Unit,
-    val changeSelectedPage: (
-        id: Int
-    ) -> Unit
+    val changeSelectedPage: (id: Int) -> Unit,
+    val changeNovelListScroll: (index: Int, offset: Int) -> Unit,
 )
 
 
@@ -115,15 +116,20 @@ fun rememberNovelAppState(
     var selectedScreen by rememberSaveable {
         mutableStateOf(screen)
     }
+    var novelListScrollIndex by rememberSaveable { mutableIntStateOf(0) }
+    var novelListScrollOffset by rememberSaveable { mutableIntStateOf(0) }
     return remember(selectedScreen, selectedNovelId, selectedNovelType, selectedPage) {
         NovelAppState(
             selectedScreen,
             selectedNovelId,
             selectedNovelType,
             selectedPage,
+            novelListScrollIndex,
+            novelListScrollOffset,
             { selectedScreen = it.name },
             { novelId, novelType -> selectedNovelId = novelId; selectedNovelType = novelType },
             { selectedPage = it },
+            { index, offset -> novelListScrollIndex = index; novelListScrollOffset = offset },
         )
     }
 }
@@ -210,16 +216,24 @@ fun NovelApp(
                         pagingSourceFactory = { db.novelDao().getPagingSource() }
                     ).flow
                 }
-                NovelScreen(novels.collectAsLazyPagingItems(), click = { novel ->
-                    novelAppState.changeSelectedNovel(novel.novelId, novel.type)
-                    navController.navigate(AppScreen.PageList.name)
-                }, download = { novel ->
-                    downloadTarget = novel
-                }, delete = { novel ->
-                    CoroutineScope(Dispatchers.IO).launch {
-                        db.novelDao().delete(novel)
+                NovelScreen(
+                    novels.collectAsLazyPagingItems(),
+                    initialScrollIndex = novelAppState.novelListScrollIndex,
+                    initialScrollOffset = novelAppState.novelListScrollOffset,
+                    click = { novel, scrollIndex, scrollOffset ->
+                        novelAppState.changeNovelListScroll(scrollIndex, scrollOffset)
+                        novelAppState.changeSelectedNovel(novel.novelId, novel.type)
+                        navController.navigate(AppScreen.PageList.name)
+                    },
+                    download = { novel ->
+                        downloadTarget = novel
+                    },
+                    delete = { novel ->
+                        CoroutineScope(Dispatchers.IO).launch {
+                            db.novelDao().delete(novel)
+                        }
                     }
-                })
+                )
             }
             composable(route = AppScreen.PageList.name) {
                 novelAppState.changeSelectedScreen(AppScreen.PageList)

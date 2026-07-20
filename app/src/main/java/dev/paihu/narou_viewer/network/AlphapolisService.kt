@@ -136,7 +136,7 @@ object AlphapolisService : SearchService {
     }
     private val fetchService by lazy {
         Retrofit.Builder()
-            .baseUrl("https://${AlphapolisService.host}/")
+            .baseUrl("https://${host}/")
             .addConverterFactory(ScalarsConverterFactory.create())
             .client(client)
             .build()

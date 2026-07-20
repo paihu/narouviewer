@@ -65,8 +65,8 @@ fun AppBar(
     if (currentScreen != AppScreen.ContentView) {
         TopAppBar(
             title = { Text(currentScreen.name) },
-            colors = TopAppBarDefaults.mediumTopAppBarColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
             ),
             modifier = modifier,
             navigationIcon = {

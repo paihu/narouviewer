@@ -1,11 +1,13 @@
 package dev.paihu.narou_viewer.network
 
 import android.net.Uri
+import androidx.paging.PagingSource
 import dev.paihu.narou_viewer.data.Novel
 
 interface SearchService {
     val host: String
     val type: String
+    val displayName: String
     suspend fun search(word: String, st: Int? = null, limit: Int? = null): List<Novel>
 
     suspend fun getNovelInfo(novelId: String): Novel
@@ -16,4 +18,6 @@ interface SearchService {
     suspend fun getPagesInfo(novelId: String): List<PageInfo>
 
     suspend fun getPage(novelId: String, pageId: String): String
+
+    fun getPagingSource(query: String): PagingSource<Int, Novel>
 }

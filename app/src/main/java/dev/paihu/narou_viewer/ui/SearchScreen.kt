@@ -3,7 +3,9 @@ package dev.paihu.narou_viewer.ui
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,10 +38,8 @@ import dev.paihu.narou_viewer.ITEMS_PER_PAGE
 import dev.paihu.narou_viewer.R
 import dev.paihu.narou_viewer.backgroud.Downloader
 import dev.paihu.narou_viewer.data.Novel
-import dev.paihu.narou_viewer.network.AlphapolisPagingSource
-import dev.paihu.narou_viewer.network.KakuyomuPagingSource
-import dev.paihu.narou_viewer.network.Narou18SearchPagingSource
 import dev.paihu.narou_viewer.network.NarouSearchPagingSource
+import dev.paihu.narou_viewer.network.NovelServiceRegistry
 
 @Composable
 fun SearchScreen(onBack: () -> Unit) {
@@ -74,26 +74,22 @@ fun Search() {
                 value = searchWord,
                 onValueChange = { searchWord = it }
             )
-            Row(modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_medium))) {
+            FlowRow(
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_medium)),
+                horizontalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small)),
+                verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_small))
+            ) {
                 TextButton(onClick = { click() }) {
                     Text("検索")
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("なろう")
-                    RadioButton(selected = type == "narou", onClick = { type = "narou" })
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("カクヨム")
-                    RadioButton(selected = type == "kakuyomu", onClick = { type = "kakuyomu" })
-
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("なろう18")
-                    RadioButton(selected = type == "narou18", onClick = { type = "narou18" })
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Alphapolis")
-                    RadioButton(selected = type == "alphapolis", onClick = { type = "alphapolis" })
+                NovelServiceRegistry.services.forEach { service ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(service.displayName)
+                        RadioButton(
+                            selected = type == service.type,
+                            onClick = { type = service.type }
+                        )
+                    }
                 }
             }
 
@@ -117,12 +113,8 @@ fun SearchResult(query: String, type: String, click: (novel: Novel) -> Unit) {
         Pager(
             config = PagingConfig(pageSize = ITEMS_PER_PAGE, enablePlaceholders = false),
             pagingSourceFactory = {
-                when (type) {
-                    "kakuyomu" -> KakuyomuPagingSource(query)
-                    "narou18" -> Narou18SearchPagingSource(query)
-                    "alphapolis" -> AlphapolisPagingSource(query)
-                    else -> NarouSearchPagingSource(query)
-                }
+                NovelServiceRegistry.getServiceByType(type)?.getPagingSource(query)
+                    ?: NarouSearchPagingSource(query)
             }
         ).flow
 

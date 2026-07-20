@@ -118,6 +118,7 @@ interface AlphapolisApi {
 object AlphapolisService : SearchService {
     override val host = "www.alphapolis.co.jp"
     override val type = "alphapolis"
+    override val displayName = "Alphapolis"
     var cookieJar =
         MemoryCookieJar()
 
@@ -264,5 +265,9 @@ object AlphapolisService : SearchService {
             pageData = "${ret.select("#novelBody")[0]}"
         }
         return pageData
+    }
+
+    override fun getPagingSource(query: String): PagingSource<Int, Novel> {
+        return AlphapolisPagingSource(query)
     }
 }

@@ -66,6 +66,7 @@ interface Narou18SearchApi {
 object Narou18Service : SearchService {
     override val host = "novel18.syosetu.com"
     override val type = "narou18"
+    override val displayName = "なろう18"
     private val client by lazy {
         OkHttpClient.Builder()
             .addInterceptor { chain ->
@@ -138,6 +139,10 @@ object Narou18Service : SearchService {
     override suspend fun getPage(novelId: String, pageId: String): String {
         val ret = Jsoup.parse(fetchService.fetchPageData(novelId, pageId))
         return ret.select(".p-novel__text > p").joinToString("\n") { it.text() }
+    }
+
+    override fun getPagingSource(query: String): PagingSource<Int, Novel> {
+        return Narou18SearchPagingSource(query)
     }
 
     private fun elementToPageInfo(it: Element, novelId: String): PageInfo {

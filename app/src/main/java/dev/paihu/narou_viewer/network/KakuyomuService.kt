@@ -75,6 +75,7 @@ class KakuyomuPagingSource(private val query: String) : PagingSource<Int, Novel>
 object KakuyomuService : SearchService {
     override val host = "kakuyomu.jp"
     override val type = "kakuyomu"
+    override val displayName = "カクヨム"
 
     private val fetchService by lazy {
         Retrofit.Builder()
@@ -304,6 +305,10 @@ object KakuyomuService : SearchService {
     override suspend fun getPage(novelId: String, pageId: String): String {
         val ret = Jsoup.parse(fetchService.fetchPageData(novelId, pageId))
         return ret.select(".widget-episodeBody p").joinToString("\n") { it.text() }
+    }
+
+    override fun getPagingSource(query: String): PagingSource<Int, Novel> {
+        return KakuyomuPagingSource(query)
     }
 
     private fun scrapePageInfo(

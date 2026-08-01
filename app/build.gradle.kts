@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "dev.paihu.narou_viewer"
-    compileSdk = 35
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "dev.paihu.narou_viewer"
@@ -52,6 +52,7 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    compileSdkMinor = 1
 }
 
 protobuf {

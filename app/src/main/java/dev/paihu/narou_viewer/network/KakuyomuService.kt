@@ -298,7 +298,8 @@ object KakuyomuService : SearchService {
         return scrapePageInfo(
             novelId,
             root,
-            rootContents
+            rootContents,
+            null
         ).mapIndexed { index, pageInfo -> pageInfo.copy(pageNum = index + 1) }
     }
 
@@ -314,7 +315,8 @@ object KakuyomuService : SearchService {
     private fun scrapePageInfo(
         novelId: String,
         root: JSONObject,
-        contents: JSONArray
+        contents: JSONArray,
+        chapterTitle: String?
     ): List<PageInfo> {
         val pageInfo = mutableListOf<PageInfo>()
         for (i in 0 until contents.length()) {
@@ -331,15 +333,30 @@ object KakuyomuService : SearchService {
                         title = title,
                         createdAt = createdAt,
                         updatedAt = createdAt,
-                        pageId = id
+                        pageId = id,
+                        chapterTitle = chapterTitle
                     )
                 )
             } else {
+                val tocChapter = root.getJSONObject(contentId)
+                var newChapterTitle = chapterTitle
+
+                if (tocChapter.has("chapter")) {
+                    val chapterRef = tocChapter.getJSONObject("chapter").getString("__ref")
+                    val chapterObj = root.optJSONObject(chapterRef)
+                    if (chapterObj != null && chapterObj.has("title")) {
+                        newChapterTitle = chapterObj.getString("title")
+                    }
+                } else if (tocChapter.has("title")) {
+                    newChapterTitle = tocChapter.getString("title")
+                }
+
                 pageInfo.addAll(
                     scrapePageInfo(
                         novelId,
                         root,
-                        root.getJSONObject(contentId).getJSONArray("episodeUnions")
+                        tocChapter.getJSONArray("episodeUnions"),
+                        newChapterTitle
                     )
                 )
             }

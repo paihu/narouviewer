@@ -37,6 +37,7 @@ data class PageInfo(
     val title: String,
     val createdAt: ZonedDateTime,
     val updatedAt: ZonedDateTime,
+    val chapterTitle: String? = null,
 )
 
 interface NarouSearchApi {
@@ -158,21 +159,40 @@ object NarouService : INarouService {
 
     override suspend fun getPagesInfo(novelId: String): List<PageInfo> {
         val ret = Jsoup.parse(fetchService.fetchNovelPagesInfo(novelId))
-        val info =
-            ret.select("div.p-eplist__sublist").map { elementToPageInfo(it, novelId) }
-                .toMutableList()
-        return try {
-            for (i in 2..ret.select("a.c-pager__item--last")[0].attr("href")
-                .split("=")[1].toInt()) {
-                val res = Jsoup.parse(fetchService.fetchNovelPagesInfo(novelId, i))
-                val addInfo =
-                    res.select("div.p-eplist__sublist").map { elementToPageInfo(it, novelId) }
-                info.addAll(addInfo)
+        val info = mutableListOf<PageInfo>()
+        var currentChapter: String? = null
+
+        fun scrapeFromDoc(doc: org.jsoup.nodes.Document) {
+            val elements = doc.select(".p-eplist > *")
+            elements.forEach { element ->
+                if (element.hasClass("p-eplist__chapter-title")) {
+                    currentChapter = element.text()
+                } else if (element.hasClass("p-eplist__sublist")) {
+                    info.add(
+                        elementToPageInfo(
+                            element,
+                            novelId
+                        ).copy(chapterTitle = currentChapter)
+                    )
+                }
             }
-            info.toList()
-        } catch (e: IndexOutOfBoundsException) {
-            info.toList()
         }
+
+        scrapeFromDoc(ret)
+
+        try {
+            val lastPage = ret.select("a.c-pager__item--last").firstOrNull()?.attr("href")
+                ?.split("=")?.lastOrNull()?.toIntOrNull()
+            if (lastPage != null) {
+                for (i in 2..lastPage) {
+                    val res = Jsoup.parse(fetchService.fetchNovelPagesInfo(novelId, i))
+                    scrapeFromDoc(res)
+                }
+            }
+        } catch (e: Exception) {
+            // ignore
+        }
+        return info.toList()
     }
 
     override suspend fun getPage(novelId: String, pageId: String): String {

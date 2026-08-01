@@ -230,7 +230,9 @@ object AlphapolisService : SearchService {
         ).nextValue() as JSONObject).getJSONArray("chapterEpisodes")
         val pages = mutableListOf<PageInfo>()
         for (i in 0 until chapters.length()) {
-            val episodes = chapters.getJSONObject(i).getJSONArray("episodes")
+            val chapter = chapters.getJSONObject(i)
+            val chapterTitle = if (chapter.has("title")) chapter.getString("title") else null
+            val episodes = chapter.getJSONArray("episodes")
             for (j in 0 until episodes.length()) {
                 val episode = episodes.getJSONObject(j)
                 val title = episode.getString("mainTitle")
@@ -246,6 +248,7 @@ object AlphapolisService : SearchService {
                             title = title,
                             createdAt = updatedAt,
                             updatedAt = updatedAt,
+                            chapterTitle = chapterTitle
                         )
                     )
             }

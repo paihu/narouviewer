@@ -30,4 +30,5 @@ data class Page(
     @ColumnInfo(name = "updated_at") val updatedAt: ZonedDateTime,
     @ColumnInfo(name = "downloaded_at") val downloadedAt: ZonedDateTime? = null,
     @ColumnInfo(name = "read_at") val readAt: ZonedDateTime? = null,
+    @ColumnInfo(name = "chapter_title") val chapterTitle: String? = null,
 )

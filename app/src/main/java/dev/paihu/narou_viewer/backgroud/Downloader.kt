@@ -74,7 +74,12 @@ class Downloader(
         val pages = db.pageDao().getAll(novel.novelId, type)
         db.close()
         val targets = pagesInfo.filter { info ->
-            pages.find { it.num == info.pageNum && info.updatedAt < it.downloadedAt } == null
+            val existing = pages.find { it.num == info.pageNum }
+            // 既存データが null (旧バージョン) の場合は、サーバー更新がなくてもメタデータ更新のためにターゲットに含める
+            existing == null ||
+                    info.updatedAt > (existing.downloadedAt
+                ?: ZonedDateTime.ofInstant(Instant.EPOCH, ZoneId.systemDefault())) ||
+                    existing.chapterTitle == null
         }
         Log.i("downloader", "targetCount ${targets.count()}")
         val manager = WorkManager.getInstance(ctx)
@@ -91,6 +96,7 @@ class Downloader(
                             "pageId" to it.pageId,
                             "pageNum" to it.pageNum,
                             "title" to it.title,
+                            "chapterTitle" to it.chapterTitle,
                             "updatedAt" to it.updatedAt.toEpochSecond(),
                             "createdAt" to it.createdAt.toEpochSecond(),
                         )
@@ -105,21 +111,25 @@ class Downloader(
         val type = inputData.getString("type") ?: return Result.failure()
         val pageId = inputData.getString("pageId") ?: return Result.failure()
         val title = inputData.getString("title") ?: return Result.failure()
+        val chapterTitle = inputData.getString("chapterTitle")
         val updatedAt = inputData.getLong("updatedAt", 0)
         val createdAt = inputData.getLong("createdAt", 0)
         val pageNum = inputData.getInt("pageNum", 0)
         if (pageNum == 0) return Result.failure()
         val service = getService(type) ?: return Result.failure()
 
-        val page = db.pageDao().select(novelId, type, pageNum)?.copy(
+        val existingPage = db.pageDao().select(novelId, type, pageNum)
+        val page = existingPage?.copy(
             title = title,
             pageId = pageId,
+            chapterTitle = chapterTitle ?: "",
         ) ?: Page(
             pageId = pageId,
             num = pageNum,
             novelId = novelId,
             novelType = type,
             title = title,
+            chapterTitle = chapterTitle ?: "",
 
             createdAt = ZonedDateTime.ofInstant(
                 Instant.ofEpochSecond(createdAt),
@@ -130,7 +140,12 @@ class Downloader(
                 ZoneId.systemDefault()
             ),
         )
+
         if (updatedAt <= (page.downloadedAt?.toEpochSecond() ?: 0)) {
+            // 本文の更新は不要だが、章タイトルが null から "" (または取得値) に変わる場合はメタデータのみ保存
+            if (existingPage != null && existingPage.chapterTitle == null) {
+                db.pageDao().upsert(page)
+            }
             db.close()
             return Result.success()
         }

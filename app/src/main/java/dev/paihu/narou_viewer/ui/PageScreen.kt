@@ -16,7 +16,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.style.TextAlign
@@ -75,19 +77,66 @@ fun Pages(
     modifier: Modifier = Modifier
 ) {
     val state = rememberLazyListState()
+
+    val scrollIndex = remember(pages, initialPageNum) {
+        if (initialPageNum <= 0) return@remember 0
+        var itemsCount = 0
+        var lastChapter: String? = "none_placeholder"
+        for (i in 0 until pages.size) {
+            val page = pages[i]
+            val displayChapter = if (page.chapterTitle.isNullOrEmpty()) null else page.chapterTitle
+
+            if (displayChapter != null && displayChapter != lastChapter) {
+                itemsCount++ // Chapter header
+                lastChapter = displayChapter
+            } else if (displayChapter == null && lastChapter != null) {
+                lastChapter = null
+            }
+
+            if (i == initialPageNum - 1) {
+                return@remember itemsCount
+            }
+            itemsCount++ // The page itself
+        }
+        0
+    }
+
     LazyColumn(state = state) {
-        items(pages.size) { index ->
-            val page = pages[index]
-            PageCard(
-                page,
-                pages.size,
-                index + 1,
-                { longClick(index) },
-                { click(index) })
+        var lastChapter: String? = "none_placeholder"
+        pages.forEachIndexed { index, page ->
+            val displayChapter = if (page.chapterTitle.isNullOrEmpty()) null else page.chapterTitle
+            if (displayChapter != null && displayChapter != lastChapter) {
+                item(key = "chapter_${displayChapter}_$index") {
+                    Text(
+                        text = displayChapter,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                        fontSize = 18.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
+                lastChapter = displayChapter
+            } else if (displayChapter == null && lastChapter != null) {
+                lastChapter = null
+            }
+
+            item(key = "${page.novelType}_${page.novelId}_${page.num}") {
+                PageCard(
+                    page,
+                    pages.size,
+                    index + 1,
+                    { longClick(index) },
+                    { click(index) })
+            }
         }
     }
-    LaunchedEffect(Unit) {
-        state.scrollToItem(maxOf(0, initialPageNum - 5))
+    var hasScrolled by remember { mutableStateOf(false) }
+    LaunchedEffect(scrollIndex, pages.isNotEmpty()) {
+        if (!hasScrolled && pages.isNotEmpty()) {
+            state.scrollToItem(maxOf(0, scrollIndex - 5))
+            hasScrolled = true
+        }
     }
 }
 

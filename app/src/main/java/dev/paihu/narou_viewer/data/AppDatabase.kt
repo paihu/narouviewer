@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [Novel::class, Page::class], version = 3, exportSchema = true)
+@Database(entities = [Novel::class, Page::class], version = 4, exportSchema = true)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun pageDao(): PageDao
     abstract fun novelDao(): NovelDao
@@ -30,10 +30,17 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
     }
 }
 
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE pages ADD COLUMN chapter_title TEXT")
+    }
+}
+
 fun initDb(context: Context): AppDatabase {
     return Room.databaseBuilder(
         context,
         AppDatabase::class.java, "app.db"
-    ).addTypeConverter(ZonedDateTimeConverter()).addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+    ).addTypeConverter(ZonedDateTimeConverter())
+        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
         .build()
 }

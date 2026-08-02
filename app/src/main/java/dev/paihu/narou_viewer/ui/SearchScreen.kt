@@ -32,6 +32,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import androidx.work.workDataOf
 import dev.paihu.narou_viewer.ITEMS_PER_PAGE
@@ -161,6 +162,7 @@ fun DownloadDialog(novel: Novel, close: () -> Unit) {
                         ExistingWorkPolicy.APPEND_OR_REPLACE,
                         OneTimeWorkRequestBuilder<Downloader>()
                             .addTag("narou")
+                            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                             .setInputData(
                                 workDataOf(
                                     "type" to novel.type,

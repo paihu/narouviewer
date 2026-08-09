@@ -121,7 +121,7 @@ fun Pages(
                 lastChapter = null
             }
 
-            item(key = "${page.novelType}_${page.novelId}_${page.num}") {
+            item(key = "${page.novelType}_${page.novelId}_${page.pageId}") {
                 PageCard(
                     page,
                     pages.size,

@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [Novel::class, Page::class], version = 4, exportSchema = true)
+@Database(entities = [Novel::class, Page::class], version = 6, exportSchema = true)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun pageDao(): PageDao
     abstract fun novelDao(): NovelDao
@@ -36,11 +36,17 @@ val MIGRATION_3_4 = object : Migration(3, 4) {
     }
 }
 
+val MIGRATION_4_6 = object : Migration(4, 6) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        // 4と6はスキーマが同じなので、バージョン番号だけ進める
+    }
+}
+
 fun initDb(context: Context): AppDatabase {
     return Room.databaseBuilder(
         context,
         AppDatabase::class.java, "app.db"
     ).addTypeConverter(ZonedDateTimeConverter())
-        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_6)
         .build()
 }

@@ -94,8 +94,9 @@ class Downloader(
         val pages = db.pageDao().getAll(novel.novelId, type)
 
         val targets = pagesInfo.filter { info ->
-            val existing = pages.find { it.num == info.pageNum }
+            val existing = pages.find { it.pageId == info.pageId }
             existing == null ||
+                    existing.num != info.pageNum ||
                     info.updatedAt > (existing.downloadedAt
                 ?: ZonedDateTime.ofInstant(Instant.EPOCH, ZoneId.systemDefault())) ||
                     existing.chapterTitle == null
@@ -164,10 +165,10 @@ class Downloader(
     ) {
         if (pageNum == 0) return
 
-        val existingPage = db.pageDao().select(novelId, type, pageNum)
+        val existingPage = db.pageDao().selectByPageId(novelId, type, pageId)
         val page = existingPage?.copy(
+            num = pageNum,
             title = title,
-            pageId = pageId,
             chapterTitle = chapterTitle ?: "",
         ) ?: Page(
             pageId = pageId,
@@ -188,7 +189,7 @@ class Downloader(
         )
 
         if (updatedAt <= (page.downloadedAt?.toEpochSecond() ?: 0)) {
-            if (existingPage != null && existingPage.chapterTitle == null) {
+            if (existingPage != null && (existingPage.chapterTitle == null || existingPage.num != pageNum)) {
                 db.pageDao().upsert(page)
             }
             return

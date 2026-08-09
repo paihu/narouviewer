@@ -30,6 +30,7 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
@@ -124,8 +125,8 @@ fun SearchResult(query: String, type: String, click: (novel: Novel) -> Unit) {
         Modifier
             .fillMaxSize()
     ) {
-        items(novels.itemCount) {
-            val novel = novels[it] ?: return@items
+        items(novels.itemCount, novels.itemKey { "${it.type}_${it.novelId}" }) { index ->
+            val novel = novels[index] ?: return@items
             Card(
                 modifier = Modifier
                     .fillMaxWidth()

@@ -18,8 +18,14 @@ interface PageDao {
     fun getAllFlow(novelId: String, novelType: String): Flow<List<Page>>
 
     @Query("select * from pages where novel_type = :novelType and novel_id = :novelId and num=:pageNum limit 1")
-    fun select(novelId: String, novelType: String, pageNum: Int): Page?
+    fun selectByNum(novelId: String, novelType: String, pageNum: Int): Page?
 
+    @Query("select * from pages where novel_type = :novelType and novel_id = :novelId and page_id = :pageId limit 1")
+    fun selectByPageId(novelId: String, novelType: String, pageId: String): Page?
+
+
+    @Query("delete from pages where novel_type = :novelType and novel_id = :novelId and num = :pageNum")
+    suspend fun deleteByNum(novelId: String, novelType: String, pageNum: Int)
 
     @Upsert
     suspend fun upsert(vararg pages: Page)

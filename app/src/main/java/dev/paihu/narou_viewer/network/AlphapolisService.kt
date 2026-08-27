@@ -179,10 +179,36 @@ object AlphapolisService : SearchService {
 
     override suspend fun getNovelInfo(novelId: String): Novel {
         val ret = Jsoup.parse(fetchService.fetchNovelPagesInfo(novelId))
-        val title = ret.selectFirst("h1.title")?.text()?.trim() ?: ""
-        val author = ret.selectFirst(".author a")?.text()?.trim() ?: ""
+        val scriptTag = ret.selectFirst("script#app-cover-data")
 
-        val detailTable = ret.selectFirst("table.detail")
+        var title = ""
+        var author = ""
+
+        if (scriptTag != null) {
+            try {
+                val json = JSONObject(JSONTokener(scriptTag.data()).nextValue().toString())
+                val content = json.optJSONObject("content")
+                if (content != null) {
+                    title = content.optString("title", "")
+                    author = content.optJSONObject("user")?.optString("name", "") ?: ""
+                }
+            } catch (e: Exception) {
+                Log.e(type, "Error parsing app-cover-data JSON", e)
+            }
+        }
+
+        if (title.isEmpty()) {
+            title = (ret.selectFirst("h1.p-content-info__title")
+                ?: ret.selectFirst(".title h1")
+                ?: ret.selectFirst("h1.title")
+                ?: ret.selectFirst("h1"))?.text()?.trim() ?: ""
+        }
+        if (author.isEmpty()) {
+            author = (ret.selectFirst(".p-content-info__author")
+                ?: ret.selectFirst(".author a"))?.text()?.trim() ?: ""
+        }
+
+        val detailTable = ret.selectFirst("table.detail") ?: ret.selectFirst(".p-novel-info")
         var createdAt = ZonedDateTime.now()
         var updatedAt = ZonedDateTime.now()
 
@@ -224,7 +250,8 @@ object AlphapolisService : SearchService {
 
     override suspend fun getPagesInfo(novelId: String): List<PageInfo> {
         val ret = Jsoup.parse(fetchService.fetchNovelPagesInfo(novelId))
-        val rawJson = ret.select("script#app-cover-data")[0].data()
+        val scriptTag = ret.selectFirst("script#app-cover-data") ?: return emptyList()
+        val rawJson = scriptTag.data()
         val chapters = (JSONTokener(
             rawJson
         ).nextValue() as JSONObject).getJSONArray("chapterEpisodes")

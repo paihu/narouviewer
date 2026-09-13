@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -52,6 +53,7 @@ enum class AppScreen {
     PageList,
     ContentView,
     SearchView,
+    Settings,
 }
 
 
@@ -60,6 +62,7 @@ enum class AppScreen {
 fun AppBar(
     currentScreen: AppScreen,
     search: () -> Unit,
+    settings: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (currentScreen != AppScreen.ContentView) {
@@ -75,6 +78,12 @@ fun AppBar(
                         Icon(
                             imageVector = Icons.Filled.Search,
                             contentDescription = "search"
+                        )
+                    }
+                    IconButton(onClick = { if (currentScreen != AppScreen.Settings) settings() }) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "settings"
                         )
                     }
                 }
@@ -178,7 +187,8 @@ fun NovelApp(
         topBar = {
             AppBar(
                 currentScreen = currentScreen,
-                search = { navController.navigate(AppScreen.SearchView.name) }
+                search = { navController.navigate(AppScreen.SearchView.name) },
+                settings = { navController.navigate(AppScreen.Settings.name) }
             )
         }
     ) { innerPadding ->
@@ -268,6 +278,12 @@ fun NovelApp(
             }
             composable(route = AppScreen.SearchView.name) {
                 SearchScreen(onBack = { navController.navigateUp() })
+            }
+            composable(route = AppScreen.Settings.name) {
+                dev.paihu.narou_viewer.ui.SettingsScreen(
+                    db = db,
+                    onBack = { navController.navigateUp() }
+                )
             }
         }
     }

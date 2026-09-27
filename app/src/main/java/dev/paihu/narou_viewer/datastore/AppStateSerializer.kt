@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.core.CorruptionException
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.Serializer
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.dataStore
 import com.google.protobuf.InvalidProtocolBufferException
 import java.io.InputStream
@@ -28,5 +29,6 @@ object AppStateSerializer : Serializer<AppState> {
 
 val Context.appStateDataStore: DataStore<AppState> by dataStore(
     fileName = "app_state.pb",
-    serializer = AppStateSerializer
+    serializer = AppStateSerializer,
+    corruptionHandler = ReplaceFileCorruptionHandler { AppState.getDefaultInstance() }
 )

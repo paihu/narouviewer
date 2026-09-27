@@ -163,9 +163,13 @@ fun NovelApp(
     // Get current back stack entry
     val backStackEntry by navController.currentBackStackEntryAsState()
     // Get the name of the current screen
-    val currentScreen = AppScreen.valueOf(
-        backStackEntry?.destination?.route ?: novelAppState.selectedScreen
-    )
+    val currentScreen = try {
+        AppScreen.valueOf(
+            backStackEntry?.destination?.route ?: novelAppState.selectedScreen
+        )
+    } catch (_: IllegalArgumentException) {
+        AppScreen.NovelList
+    }
     var downloadTarget by remember { mutableStateOf<Novel?>(null) }
 
     LaunchedEffect(uri) {

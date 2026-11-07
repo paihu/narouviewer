@@ -68,15 +68,18 @@ fun ContentScreen(
 @Composable
 fun Contents(state: PagerState, pages: List<Page>, count: Int, read: (page: Page) -> Unit) {
     HorizontalPager(
-        state = state
+        state = state,
+        key = { index -> pages.getOrNull(index)?.pageId ?: index }
     ) { index ->
-
         val scrollState = rememberScrollState()
+        val page = pages.getOrNull(index) ?: return@HorizontalPager
 
-        val page = pages[index]
-        if (!scrollState.canScrollForward) {
-            read(page)
+        LaunchedEffect(scrollState.canScrollForward, page.pageId) {
+            if (!scrollState.canScrollForward) {
+                read(page)
+            }
         }
+
         Card(
             modifier = Modifier
                 .fillMaxSize()

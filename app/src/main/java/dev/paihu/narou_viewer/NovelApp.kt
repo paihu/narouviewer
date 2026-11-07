@@ -12,11 +12,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -44,9 +46,7 @@ import dev.paihu.narou_viewer.ui.PageScreen
 import dev.paihu.narou_viewer.ui.SearchScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 enum class AppScreen {
     NovelList,
@@ -150,15 +150,18 @@ fun NovelApp(
     uri: Uri? = null,
     navController: NavHostController = rememberNavController(),
 ) {
-    val datastoreData = remember {
-        runBlocking { datastore.data.first() }
+    val datastoreData by datastore.data.collectAsState(initial = null)
+
+    if (datastoreData == null) {
+        Surface(modifier = Modifier.fillMaxSize()) {}
+        return
     }
 
     val novelAppState = rememberNovelAppState(
-        datastoreData.selectedNovelId,
-        datastoreData.selectedNovelType,
-        datastoreData.selectedPage,
-        datastoreData.selectedScreen.ifEmpty { AppScreen.NovelList.name }
+        datastoreData!!.selectedNovelId,
+        datastoreData!!.selectedNovelType,
+        datastoreData!!.selectedPage,
+        datastoreData!!.selectedScreen.ifEmpty { AppScreen.NovelList.name }
     )
     // Get current back stack entry
     val backStackEntry by navController.currentBackStackEntryAsState()

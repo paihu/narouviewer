@@ -18,6 +18,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
@@ -57,10 +58,13 @@ fun PageScreen(
     }
     val pages by pageFlow.collectAsState(initial = emptyList())
 
+    val coroutineScope = rememberCoroutineScope()
     val longClick: (id: Int) -> Unit = { id ->
         val page = pages[id]
-        if (page.readAt != null) CoroutineScope(Dispatchers.IO).launch {
-            db.pageDao().upsert(page.copy(readAt = null))
+        if (page.readAt != null) {
+            coroutineScope.launch(Dispatchers.IO) {
+                db.pageDao().upsert(page.copy(readAt = null))
+            }
         }
     }
 
